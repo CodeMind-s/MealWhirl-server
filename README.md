@@ -1,11 +1,20 @@
 # MealWhirl-server
 
 <p align="center">
-    <a href="https://nodejs.org/" target="blank"><img src="https://nodejs.org/static/images/logo.svg" width="120" alt="Node.js Logo" /></a>
-    <a href="https://www.docker.com/" target="blank"><img src="https://www.liblogo.com/img-logo/do3931dbf1-docke-logo--logos-.png" width="120" alt="Docker Logo" /></a>
-    <a href="https://kubernetes.io/" target="blank"><img src="https://th.bing.com/th/id/OIP.r7qlz_EB9T-SVK7UvF3aXwHaBT?w=800&h=141&rs=1&pid=ImgDetMain" width="120" alt="Kubernetes Logo" /></a>
-    <a href="https://kafka.apache.org/" target="blank"><img src="https://www.bettercloud.com/mx-careers/apache_kafka_wordtype-svg" width="120" alt="Kafka Logo" /></a>
+    <a href="https://nodejs.org/" target="blank">
+        <img src="https://nodejs.org/static/images/logo.svg" width="120" alt="Node.js Logo" style="margin-right: 40px;" />
+    </a>
+    <a href="https://www.docker.com/" target="blank">
+        <img src="https://en.vetores.org/d/docker.svg" width="120" alt="Docker Logo" style="margin-right: 40px;" />
+    </a>
+    <a href="https://kubernetes.io/" target="blank">
+        <img src="https://vetores.org/d/kubernetes.svg" width="120" alt="Kubernetes Logo" style="margin-right: 40px;" />
+    </a>
+    <a href="https://kafka.apache.org/" target="blank">
+        <img src="https://www.bettercloud.com/mx-careers/apache_kafka_wordtype-svg" width="120" alt="Kafka Logo" />
+    </a>
 </p>
+
 
 <p align="center">
     A microservices-based backend for a food delivery platform, built with Node.js and Express.js.
