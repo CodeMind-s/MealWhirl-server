@@ -1,8 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db");
-const orderRoutes = require("./routes/orderRoutes");
-const { initKafkaProducer } = require("./services/kafkaService");
+const { initKafkaProducer, initKafkaConsumer } = require("./services/kafkaService");
 
 const app = express();
 const PORT = process.env.PORT || 5002;
@@ -10,8 +9,10 @@ const PORT = process.env.PORT || 5002;
 // Middleware
 app.use(express.json());
 
-// Routes
-app.use("/orders", orderRoutes);
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).send('Order Service is healthy');
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -25,12 +26,16 @@ const startServer = async () => {
     // Connect to MongoDB
     await connectDB();
     console.log("MongoDB connected successfully");
-
+    
     // Initialize Kafka Producer
     await initKafkaProducer();
     console.log("Kafka Producer initialized");
-
-    // Start Express server
+    
+    // Initialize Kafka Consumer
+    await initKafkaConsumer();
+    console.log("Kafka Consumer initialized");
+    
+    // Start Express server for health checks
     app.listen(PORT, () => {
       console.log(`Order Service running on port ${PORT}`);
     });

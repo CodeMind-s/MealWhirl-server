@@ -1,19 +1,82 @@
-const Order = require("../models/orderModel");
-const { sendKafkaMessage } = require("../services/kafkaService");
+const Order = require('../models/orderModel');
+const { produceMessage } = require('../services/kafkaService');
 
-const getOrders = async (req, res) => {
-  const orders = await Order.find();
-  res.json(orders);
+exports.createOrder = async (orderData) => {
+  try {
+    const { userId, products, totalAmount } = orderData;
+    
+    if (!userId || !products || !totalAmount) {
+      throw new Error('Missing required fields');
+    }
+    
+    // Create a new order
+    const newOrder = new Order({
+      userId,
+      products,
+      totalAmount,
+      status: 'pending'
+    });
+    
+    const savedOrder = await newOrder.save();
+    
+    // Send message to Kafka for user validation
+    await produceMessage('user-order', {
+      orderId: savedOrder._id.toString(),
+      userId,
+      action: 'validate',
+      timestamp: new Date().toISOString()
+    });
+    
+    return savedOrder;
+  } catch (error) {
+    console.error('Error creating order:', error);
+    throw error;
+  }
 };
 
-const createOrder = async (req, res) => {
-  console.log("Creating order:", req.body);
-  const order = new Order(req.body);
-  await order.save();
-
-  sendKafkaMessage("order-events", { event: "order_created", order });
-
-  res.status(201).json(order);
+exports.getOrderById = async (orderId) => {
+  try {
+    const order = await Order.findById(orderId);
+    
+    if (!order) {
+      const error = new Error('Order not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    return order;
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    throw error;
+  }
 };
 
-module.exports = { getOrders, createOrder };
+exports.updateOrderStatus = async (orderId, status) => {
+  try {
+    const order = await Order.findById(orderId);
+    
+    if (!order) {
+      const error = new Error('Order not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    order.status = status;
+    order.updatedAt = Date.now();
+    
+    const updatedOrder = await order.save();
+    
+    // Send message to Kafka about order status update
+    await produceMessage('order-status', {
+      orderId,
+      userId: order.userId,
+      status,
+      timestamp: new Date().toISOString()
+    });
+    
+    return updatedOrder;
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+};

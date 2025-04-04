@@ -1,16 +1,53 @@
-const User = require("../models/userModel");
-const { sendKafkaMessage } = require("../services/kafkaService");
+const User = require('../models/userModel');
 
-exports.getUsers = async (req, res) => {
-  const users = await User.find();
-  res.json(users);
+exports.createUser = async (userData) => {
+  try {
+    const { name, email, address } = userData;
+    
+    if (!name || !email) {
+      const error = new Error('Name and email are required');
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    
+    if (existingUser) {
+      const error = new Error('User with this email already exists');
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    // Create new user
+    const user = new User({
+      name,
+      email,
+      address
+    });
+    
+    const savedUser = await user.save();
+    
+    return savedUser;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
 };
 
-exports.createUser = async (req, res) => {
-  const user = new User(req.body);
-  await user.save();
-
-  sendKafkaMessage("user-events", { event: "user_created", user });
-
-  res.status(201).json(user);
+exports.getUserById = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    return { user };
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    throw error;
+  }
 };

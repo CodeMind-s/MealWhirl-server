@@ -1,22 +1,49 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const axios = require("axios");
+const { sendMessageWithResponse } = require('../services/kafkaService');
 
-router.get("/", async (req, res) => {
+// Create a new order
+router.post('/', async (req, res) => {
   try {
-    const response = await axios.get("http://order-service:5002/orders");
-    res.json(response.data);
+    // First, validate that the user exists
+    const userValidation = await sendMessageWithResponse('user-request', {
+      action: 'getUser',
+      payload: { userId: req.body.userId }
+    });
+    
+    if (!userValidation.user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // If user exists, create the order
+    const orderResult = await sendMessageWithResponse('order-request', {
+      action: 'createOrder',
+      payload: req.body
+    });
+    
+    return res.status(201).json(orderResult);
   } catch (error) {
-    res.status(500).send("Error contacting order service");
+    console.error('Error creating order:', error.message);
+    return res.status(500).json({ 
+      message: error.message || 'Error creating order' 
+    });
   }
 });
 
-router.post("/", async (req, res) => {
+// Get order by ID
+router.get('/:id', async (req, res) => {
   try {
-    const response = await axios.post("http://order-service:5002/orders", req.body);
-    res.json(response.data);
+    const orderResult = await sendMessageWithResponse('order-request', {
+      action: 'getOrder',
+      payload: { id: req.params.id }
+    });
+    
+    return res.json(orderResult);
   } catch (error) {
-    res.status(500).send("Error contacting order service");
+    console.error('Error fetching order:', error.message);
+    return res.status(error.statusCode || 500).json({ 
+      message: error.message || 'Error fetching order' 
+    });
   }
 });
 

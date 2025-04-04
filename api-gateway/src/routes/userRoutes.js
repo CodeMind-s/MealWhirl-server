@@ -1,22 +1,38 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const axios = require("axios");
+const { sendMessageWithResponse } = require('../services/kafkaService');
 
-router.get("/", async (req, res) => {
+// Create a new user
+router.post('/', async (req, res) => {
   try {
-    const response = await axios.get("http://user-service:5001/users");
-    res.json(response.data);
+    const result = await sendMessageWithResponse('user-request', {
+      action: 'createUser',
+      payload: req.body
+    });
+    
+    return res.status(201).json(result);
   } catch (error) {
-    res.status(500).send("Error contacting user service");
+    console.error('Error creating user:', error.message);
+    return res.status(500).json({ 
+      message: error.message || 'Error creating user' 
+    });
   }
 });
 
-router.post("/", async (req, res) => {
+// Get user by ID
+router.get('/:id', async (req, res) => {
   try {
-    const response = await axios.post("http://user-service:5001/users", req.body);
-    res.json(response.data);
+    const result = await sendMessageWithResponse('user-request', {
+      action: 'getUser',
+      payload: { userId: req.params.id }
+    });
+    
+    return res.json(result);
   } catch (error) {
-    res.status(500).send("Error contacting user service");
+    console.error('Error fetching user:', error.message);
+    return res.status(500).json({ 
+      message: error.message || 'Error fetching user' 
+    });
   }
 });
 
