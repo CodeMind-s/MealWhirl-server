@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db");
+const logger = require("./utils/logger");
 const { initKafkaProducer, initKafkaConsumer } = require("./services/kafkaService");
 
 const app = express();
@@ -33,11 +34,11 @@ const startServer = async () => {
     
     // Initialize Kafka Consumer
     await initKafkaConsumer();
-    console.log("Kafka Consumer initialized");
+    logger.info("Kafka Consumer initialized");
     
     // Start Express server for health checks
     app.listen(PORT, () => {
-      console.log(`Order Service running on port ${PORT}`);
+      logger.info(`Order Service running on port ${PORT}`);
     });
   } catch (error) {
     console.error("Failed to start Order Service:", error);
