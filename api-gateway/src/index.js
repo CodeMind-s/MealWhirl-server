@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const logger = require('./utils/logger');
 const userRoutes = require("./routes/userRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const { initKafkaProducer, initKafkaConsumer } = require("./services/kafkaService");
@@ -11,11 +12,11 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 
 // Routes
-app.use("/users", userRoutes);
-app.use("/orders", orderRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/orders", orderRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Connected to API Gateway");
+app.get("/api/v1", (req, res) => {
+  res.send("Connected to Mealwhirl API Gateway");
 });
 
 // Error handling middleware
@@ -29,24 +30,24 @@ const startServer = async () => {
   try {
     // Initialize Kafka Producer
     await initKafkaProducer();
-    console.log("Kafka Producer initialized");
+    logger.info("Kafka Producer initialized");
     
     // Initialize Kafka Consumer to receive responses
     await initKafkaConsumer();
-    console.log("Kafka Consumer initialized");
+    logger.info("Kafka Consumer initialized");
     
     app.listen(PORT, () => {
-      console.log(`API Gateway running on port ${PORT}`);
+      logger.info(`API Gateway running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Failed to start API Gateway:", error);
+    logger.error("Failed to start API Gateway:", error);
     process.exit(1);
   }
 };
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 startServer();
