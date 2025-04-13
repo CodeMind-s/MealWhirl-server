@@ -181,7 +181,7 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-router.patch('/assignDeliveryPerson/:id', async (req, res) => {
+router.patch('/delivery/:id', async (req, res) => {
   try {
     logger.info(`{PATCH api/v1/orders/assignDeliveryPerson/:id} Received request to assign delivery person for order ID: ${req.params.id}`);
     const orderResult = await sendMessageWithResponse('order-request', {
