@@ -1,4 +1,5 @@
 const {Kafka} = require('kafkajs');
+const logger = require('../utils/logger');
 
 const kafka = new Kafka({
     clientId: 'user-service',
@@ -30,7 +31,7 @@ const initKafkaConsumer = async () => {
     await consumer.run({
         eachMessage: async ({topic, _, message}) => {
             const messageValue = JSON.parse(message.value.toString());
-            console.log(`Received message from topic ${topic}:`, messageValue);
+            logger.info(`Received message from topic ${topic}:`, messageValue);
 
             if (topic === 'user-request') {
                 // Handle API gateway requests
@@ -131,7 +132,7 @@ const initKafkaConsumer = async () => {
                 }
             } else if (topic === 'order-status') {
                 // Handle order status updates
-                console.log(`Order ${messageValue.orderId} status updated to ${messageValue.status} for user ${messageValue.userId}`);
+                logger.info(`Order ${messageValue.orderId} status updated to ${messageValue.status} for user ${messageValue.userId}`);
 
                 // Here you could implement user notifications, update user order history, etc.
             }
@@ -145,7 +146,7 @@ const produceMessage = async (topic, message) => {
             topic,
             messages: [{value: JSON.stringify(message)}]
         });
-        console.log(`Message sent to topic ${topic}`);
+        logger.info(`Message sent to topic ${topic}`);
         return true;
     } catch (error) {
         console.error(`Error producing message to ${topic}:`, error);

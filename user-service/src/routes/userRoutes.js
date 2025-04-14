@@ -8,11 +8,11 @@ const { ANY } = PERMISSION_TYPES;
 
 const router = express.Router();
 
-router.get("/:category", authorization(ANY), validateGetAllUsers, userController.getAllUsersByCategory);
-router.get("/:category/:id", authorization(ANY), validateGetUserByIdentifier, userController.getUserByIdentifier);
-router.post("/:category", authorization(ANY), validateCreateUser, userController.createUserByCategory);
-router.put("/:category/:id", authorization(ANY), validateUpdateUser, userController.updateUserByCategory);
-router.delete("/:category/:id", authorization(ANY), validateDeleteUserAccountByIdentifier, userController.deleteAccountByIdentifier);
-router.patch("/:category/:id", authorization(ANY), validateAccountStatusUpdateUserByIdentifier, userController.updateUserAccountStatusByIdentifier);
+router.get("/:category", authorization([ANY]), validateGetAllUsers, userController.getAllUsersByCategory);
+router.get("/:category/:id", authorization([ANY]), validateGetUserByIdentifier, userController.getUserByIdentifier);
+router.post("/:category", authorization([ANY]), validateCreateUser, userController.createUserByCategory);
+router.put("/:category/:id", authorization([ANY]), validateUpdateUser, userController.updateUserByCategory);
+router.delete("/:category/:id", authorization([ANY]), validateDeleteUserAccountByIdentifier, userController.deleteAccountByIdentifier);
+router.patch("/:category/:id", authorization([ANY]), validateAccountStatusUpdateUserByIdentifier, userController.updateUserAccountStatusByIdentifier);
 
 module.exports = router;
