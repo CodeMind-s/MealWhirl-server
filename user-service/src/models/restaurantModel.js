@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { USER_ACCOUNT_STATUS } = require('../constants/userConstants');
 
 /**
  * RestaurantSchema defines the structure of the restaurant document in MongoDB.
@@ -71,7 +72,12 @@ const RestaurantSchema = new mongoose.Schema(
         type: Number,
         default: 0
       }
-    }
+    },
+    accountStatus: {
+      type: String,
+      enum: Object.values(USER_ACCOUNT_STATUS),
+      default: USER_ACCOUNT_STATUS.INACTIVE,
+    },
   },
   {
     timestamps: true
@@ -81,9 +87,9 @@ const RestaurantSchema = new mongoose.Schema(
 // Custom validation to ensure at least one of email or phoneNumber is provided
 RestaurantSchema.pre('validate', function (next) {
   if (!this.email && !this.phoneNumber) {
-      next(new Error('At least one of email or phoneNumber is required.'));
+    next(new Error('At least one of email or phoneNumber is required.'));
   } else {
-      next();
+    next();
   }
 });
 

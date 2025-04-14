@@ -58,7 +58,7 @@ const register = async (payload) => {
             );
             return { [type]: updatedUser.identifier, type };
         } else if (user) {
-            return new ForbiddenException('User already exists', 403);
+            throw new ForbiddenException('User already exists', 403);
         }
 
         const newUser = new User({

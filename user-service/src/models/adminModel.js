@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { ADMIN_TYPES } = require('../constants/userConstants');
+const { ADMIN_TYPES, USER_ACCOUNT_STATUS } = require('../constants/userConstants');
 
 const AdminSchema = new mongoose.Schema({
     identifier: {
@@ -43,6 +43,11 @@ const AdminSchema = new mongoose.Schema({
     permissions: {
         type: [String],
         default: [],
+    },
+    accountStatus: {
+        type: String,
+        enum: Object.values(USER_ACCOUNT_STATUS),
+        default: USER_ACCOUNT_STATUS.INACTIVE,
     },
 }, {
     timestamps: true,

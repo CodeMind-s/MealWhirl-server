@@ -11,15 +11,18 @@ const Admin = require('../models/adminModel');
 const { getUserRole } = require('../utils/contextUtils');
 const ForbiddenException = require('../exceptions/ForbiddenException');
 
-const getUserByIdentifier = async (identifier) => {
-    return User.findOne({ identifier });
+const getUserByIdentifier = async (identifier, category) => {
+
+    return User.findOne({ identifier, ...(category ? { category } : {}) });
 };
 
 const createUserByCategory = async (userData) => {
     try {
         const { identifier, category } = userData;
 
-        const user = await getUserByIdentifier(identifier);
+        const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
+
+        const user = await getUserByIdentifier(identifier, filterCategory);
 
         if (!user) {
             logger.error('User not found');
@@ -31,7 +34,9 @@ const createUserByCategory = async (userData) => {
             throw new ConflictException('User already created');
         }
 
-        if ([USER_CATEGORIES.SUPER_ADMIN, USER_CATEGORIES.ADMIN].includes(category)) {
+        const isAdmin = category === USER_CATEGORIES.ADMIN;
+
+        if (isAdmin) {
             const userRole = getUserRole();
             if (userRole !== USER_CATEGORIES.SUPER_ADMIN) {
                 logger.error('User not authorized to create admin');
@@ -58,10 +63,13 @@ const createUserByCategory = async (userData) => {
                 throw new BadRequestException(`Invalid category: ${category}`);
         }
 
+        const categoryToUse = isAdmin ? userData.role : category;
+
         const userModelData = new userObject({
             id: user._id,
             ...userData,
             [user.type]: identifier,
+            category: categoryToUse,
             accountStatus: USER_ACCOUNT_STATUS.ACTIVE,
         })
 
@@ -70,7 +78,7 @@ const createUserByCategory = async (userData) => {
 
         logger.info('Updating user to verified...');
         await User.findOneAndUpdate(
-            { identifier }, { verified: true, accountStatus: USER_ACCOUNT_STATUS.ACTIVE, category },
+            { identifier }, { verified: true, accountStatus: USER_ACCOUNT_STATUS.ACTIVE, category: categoryToUse },
         );
 
         return { ...createdUser._doc, verified: true, type: user.type, accountStatus: USER_ACCOUNT_STATUS.ACTIVE };
@@ -112,7 +120,10 @@ const getAllUsersByCategory = async (category) => {
 
 const getUserDataByIdentifier = async (category, identifier) => {
     try {
-        const user = await getUserByIdentifier(identifier);
+        const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
+
+        const user = await getUserByIdentifier(identifier, filterCategory);
+
         if (!user) {
             logger.error('User not found');
             throw new NotFoundException('User not found');
@@ -120,10 +131,6 @@ const getUserDataByIdentifier = async (category, identifier) => {
         if (user.accountStatus !== USER_ACCOUNT_STATUS.ACTIVE) {
             logger.error('User not active');
             throw new ConflictException('User not active');
-        }
-        if (user.category !== category) {
-            logger.error('User category mismatch');
-            throw new ConflictException('User category mismatch');
         }
 
         let userObject = null;
@@ -157,21 +164,24 @@ const updateUserByCategory = async (userData) => {
     try {
         const { identifier, category } = userData;
 
-        const user = await getUserByIdentifier(identifier);
+        const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
+
+        const user = await getUserByIdentifier(identifier, filterCategory);
 
         if (!user) {
             logger.error('User not found');
             throw new NotFoundException('User not found');
         }
 
-        if (user.category !== category) {
-            logger.error('User category mismatch');
-            throw new ConflictException('User category mismatch');
-        }
-
         if (user.accountStatus !== USER_ACCOUNT_STATUS.ACTIVE) {
             logger.error('User not active');
             throw new ConflictException('User not active');
+        }
+
+        const tokenUser = getUserRole();
+        if (tokenUser !== USER_CATEGORIES.SUPER_ADMIN && user.category === USER_CATEGORIES.SUPER_ADMIN) {
+            logger.error('Super admin cannot be updated');
+            throw new ForbiddenException('Super admin cannot be updated');
         }
 
         let userObject = null;
@@ -192,7 +202,8 @@ const updateUserByCategory = async (userData) => {
                 logger.error('Invalid category');
                 throw new BadRequestException(`Invalid category: ${category}`);
         }
-        const updatedUser = await Restaurant.findOneAndUpdate({ identifier }, userData, { new: true });
+
+        const updatedUser = await userObject.findOneAndUpdate({ identifier }, userData, { new: true });
 
         return { ...updatedUser._doc, verified: user.verified, type: user.type, accountStatus: user.accountStatus };
     } catch (error) {
@@ -209,21 +220,29 @@ const updateUserAccountStatusByIdentifier = async (userData, status) => {
         };
         const { identifier, category } = userData;
 
-        const user = await getUserByIdentifier(identifier);
+        const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
+
+        const user = await getUserByIdentifier(identifier, filterCategory);
 
         if (!user) {
             logger.error('User not found');
             throw new NotFoundException('User not found');
         }
 
-        if (user.category !== category) {
-            logger.error('User not created yet');
-            throw new ConflictException('User not created yet');
-        }
-
         if (user.accountStatus === status) {
             logger.error(`User already has status: ${status}`);
             throw new ConflictException(`User already has status: ${status}`);
+        }
+
+        const tokenUser = getUserRole();
+        if (tokenUser !== USER_CATEGORIES.SUPER_ADMIN && user.category === USER_CATEGORIES.SUPER_ADMIN) {
+            logger.error('Super admin cannot be updated');
+            throw new ForbiddenException('Super admin cannot be updated');
+        }
+
+        if (status === USER_ACCOUNT_STATUS.DELETED && user.category === USER_CATEGORIES.SUPER_ADMIN) {
+            logger.error('Super admin cannot be deleted');
+            throw new ForbiddenException('Super admin cannot be deleted');
         }
 
         let userObject = null;
@@ -263,21 +282,23 @@ const deleteAccountByIdentifier = async (userData, status) => {
     try {
         const { identifier, category } = userData;
 
-        const user = await getUserByIdentifier(identifier);
+        const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
+
+        const user = await getUserByIdentifier(identifier, filterCategory);
 
         if (!user) {
             logger.error('User not found');
             throw new NotFoundException('User not found');
         }
 
-        if (user.category !== category) {
-            logger.error('User category mismatch');
-            throw new ConflictException('User category mismatch');
-        }
-
         if (user.accountStatus === USER_ACCOUNT_STATUS.DELETED) {
             logger.error('User already deleted');
             throw new ConflictException('User already deleted');
+        }
+
+        if (user.category === USER_CATEGORIES.SUPER_ADMIN) {
+            logger.error('Super admin cannot be deleted');
+            throw new ForbiddenException('Super admin cannot be deleted');
         }
 
         let userObject = null;

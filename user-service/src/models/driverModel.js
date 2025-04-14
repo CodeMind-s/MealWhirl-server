@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { USER_ACCOUNT_STATUS } = require('../constants/userConstants');
 
 /**
  * DriverSchema defines the structure of the driver document in MongoDB.
@@ -103,7 +104,12 @@ const DriverSchema = new mongoose.Schema(
         isAvailable: {
             type: Boolean,
             default: true
-        }
+        },
+        accountStatus: {
+            type: String,
+            enum: Object.values(USER_ACCOUNT_STATUS),
+            default: USER_ACCOUNT_STATUS.INACTIVE,
+        },
     },
     {
         timestamps: true,
