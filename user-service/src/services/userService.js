@@ -10,6 +10,7 @@ const Restaurant = require('../models/restaurantModel');
 const Admin = require('../models/adminModel');
 const { getUserRole } = require('../utils/contextUtils');
 const ForbiddenException = require('../exceptions/ForbiddenException');
+const { getModelByCategory } = require('../utils/userUtils');
 
 const getUserByIdentifier = async (identifier, category) => {
 
@@ -44,24 +45,7 @@ const createUserByCategory = async (userData) => {
             }
         }
 
-        let userObject = null;
-        switch (category) {
-            case USER_CATEGORIES.CUSTOMER:
-                userObject = Customer;
-                break;
-            case USER_CATEGORIES.DRIVER:
-                userObject = Driver;
-                break;
-            case USER_CATEGORIES.RESTAURANT:
-                userObject = Restaurant;
-                break;
-            case USER_CATEGORIES.ADMIN:
-                userObject = Admin;
-                break;
-            default:
-                logger.error('Invalid category');
-                throw new BadRequestException(`Invalid category: ${category}`);
-        }
+        const userObject = getModelByCategory(category);
 
         const categoryToUse = isAdmin ? userData.role : category;
 
@@ -91,24 +75,7 @@ const createUserByCategory = async (userData) => {
 const getAllUsersByCategory = async (category) => {
     try {
         let users = null;
-        let userObject = null;
-        switch (category) {
-            case USER_CATEGORIES.CUSTOMER:
-                userObject = Customer;
-                break;
-            case USER_CATEGORIES.DRIVER:
-                userObject = Driver;
-                break;
-            case USER_CATEGORIES.RESTAURANT:
-                userObject = Restaurant;
-                break;
-            case USER_CATEGORIES.ADMIN:
-                userObject = Admin;
-                break;
-            default:
-                logger.error('Invalid category');
-                throw new BadRequestException(`Invalid category: ${category}`);
-        }
+        const userObject = getModelByCategory(category);
 
         users = await userObject.find({ accountStatus: USER_ACCOUNT_STATUS.ACTIVE });
         return users;
@@ -133,24 +100,7 @@ const getUserDataByIdentifier = async (category, identifier) => {
             throw new ConflictException('User not active');
         }
 
-        let userObject = null;
-        switch (category) {
-            case USER_CATEGORIES.CUSTOMER:
-                userObject = Customer;
-                break;
-            case USER_CATEGORIES.DRIVER:
-                userObject = Driver;
-                break;
-            case USER_CATEGORIES.RESTAURANT:
-                userObject = Restaurant;
-                break;
-            case USER_CATEGORIES.ADMIN:
-                userObject = Admin;
-                break;
-            default:
-                logger.error('Invalid category');
-                throw new BadRequestException(`Invalid category: ${category}`);
-        }
+        const userObject = getModelByCategory(category);
 
         const userData = await userObject.findOne({ identifier });
         return { ...userData._doc, verified: user.verified, type: user.type, accountStatus: user.accountStatus };
@@ -184,24 +134,7 @@ const updateUserByCategory = async (userData) => {
             throw new ForbiddenException('Super admin cannot be updated');
         }
 
-        let userObject = null;
-        switch (category) {
-            case USER_CATEGORIES.CUSTOMER:
-                userObject = Customer;
-                break;
-            case USER_CATEGORIES.DRIVER:
-                userObject = Driver;
-                break;
-            case USER_CATEGORIES.RESTAURANT:
-                userObject = Restaurant;
-                break;
-            case USER_CATEGORIES.ADMIN:
-                userObject = Admin;
-                break;
-            default:
-                logger.error('Invalid category');
-                throw new BadRequestException(`Invalid category: ${category}`);
-        }
+        const userObject = getModelByCategory(category);
 
         const updatedUser = await userObject.findOneAndUpdate({ identifier }, userData, { new: true });
 
@@ -245,24 +178,7 @@ const updateUserAccountStatusByIdentifier = async (userData, status) => {
             throw new ForbiddenException('Super admin cannot be deleted');
         }
 
-        let userObject = null;
-        switch (category) {
-            case USER_CATEGORIES.CUSTOMER:
-                userObject = Customer;
-                break;
-            case USER_CATEGORIES.DRIVER:
-                userObject = Driver;
-                break;
-            case USER_CATEGORIES.RESTAURANT:
-                userObject = Restaurant;
-                break;
-            case USER_CATEGORIES.ADMIN:
-                userObject = Admin;
-                break;
-            default:
-                logger.error('Invalid category');
-                throw new BadRequestException(`Invalid category: ${category}`);
-        }
+        const userObject = getModelByCategory(category);
 
         await userObject.findOneAndUpdate({ identifier }, { accountStatus: status });
 
@@ -301,24 +217,7 @@ const deleteAccountByIdentifier = async (userData, status) => {
             throw new ForbiddenException('Super admin cannot be deleted');
         }
 
-        let userObject = null;
-        switch (category) {
-            case USER_CATEGORIES.CUSTOMER:
-                userObject = Customer;
-                break;
-            case USER_CATEGORIES.DRIVER:
-                userObject = Driver;
-                break;
-            case USER_CATEGORIES.RESTAURANT:
-                userObject = Restaurant;
-                break;
-            case USER_CATEGORIES.ADMIN:
-                userObject = Admin;
-                break;
-            default:
-                logger.error('Invalid category');
-                throw new BadRequestException(`Invalid category: ${category}`);
-        }
+        const userObject = getModelByCategory(category);
 
         await userObject.findOneAndDelete({ identifier });
 
