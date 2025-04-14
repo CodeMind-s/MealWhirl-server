@@ -5,7 +5,7 @@ const { ENV, USER_DETAILS_CONTEXT_KEY } = require('../constants/configConstants'
 /**
  * Create a new winston logger.
  */
-const level = ENV === 'dev' ? 'debug' : 'info';
+const level = ENV === 'test' ? 'debug' : 'info';
 const logger = winston.createLogger({
     transports: [
         new winston.transports.Console({
