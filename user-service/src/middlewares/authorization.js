@@ -25,7 +25,6 @@ function authorization(permittedRoles, getOwner = null, inputFormatter = null, o
                 if (inputFormatter) {
                     inputParameters = inputFormatter(inputParameters);
                 }
-                console.log('inputParameters', inputParameters, getOwner);
                 let ownerId = await getOwner(inputParameters);
 
                 if (outputFormatter) {
