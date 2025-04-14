@@ -1,54 +1,96 @@
-require("dotenv").config();
 const express = require("express");
+const morgan = require("morgan");
+const cors = require("cors");
+const helmet = require("helmet");
+const compression = require("compression");
+const httpContext = require("express-http-context");
+require("dotenv").config();
 const connectDB = require("./config/db");
-const { initKafkaProducer, initKafkaConsumer } = require("./services/kafkaService");
+const errorHandler = require("./middlewares/errorHandler");
+const tokenHandler = require("./middlewares/tokenHandler");
+const $404Handler = require('./middlewares/404Handler');
+const errorLogger = require("./middlewares/errorLogger");
+const logger = require("./utils/logger");
+const { logStream } = require("./utils/logger");
+const {initKafkaProducer, initKafkaConsumer} = require("./services/kafkaService");
+const router = require("./routes");
+const {
+    BASE_URL,
+    APP_PORT,
+    APP_HOST,
+    KEEP_ALIVE_TIME_OUT,
+    HEADERS_TIME_OUT, IMMEDIATE_LOG_FORMAT, LOG_FORMAT
+} = require("./constants/configConstants");
 
-const app = express();
-const PORT = process.env.PORT || 5001;
-
-// Middleware
-app.use(express.json());
-
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).send('User Service is healthy');
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke in the User Service!');
-});
-
-// Startup function
 const startServer = async () => {
-  try {
-    // Connect to MongoDB
-    await connectDB();
-    console.log("MongoDB connected successfully");
-    
-    // Initialize Kafka Producer
-    await initKafkaProducer();
-    console.log("Kafka Producer initialized");
-    
-    // Initialize Kafka Consumer
-    await initKafkaConsumer();
-    console.log("Kafka Consumer initialized");
-    
-    // Start Express server for health checks
-    app.listen(PORT, () => {
-      console.log(`User Service running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Failed to start User Service:", error);
-    process.exit(1);
-  }
-};
+    try {
+        await connectDB();
+        logger.info("MongoDB connected successfully");
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
+        await initKafkaProducer();
+        logger.info("Kafka Producer initialized");
+        
+        await initKafkaConsumer();
+        logger.info("Kafka Consumer initialized");
+
+        const app = express();
+        app.set("port", APP_PORT);
+        app.set("host", APP_HOST);
+
+        app.use(cors());
+        app.use(helmet());
+        app.use(compression());
+        app.use(httpContext.middleware);
+        app.use(express.json());
+
+        app.use(
+            morgan(IMMEDIATE_LOG_FORMAT, {
+                immediate: true,
+                stream: logStream
+            })
+        );
+        app.use(
+            morgan(LOG_FORMAT, {
+                stream: logStream
+            })
+        );
+
+        app.use(tokenHandler());
+
+        app.use(BASE_URL, router);
+
+        app.get("/health", (req, res) => {
+            res.status(200).send("User Service is healthy");
+        });
+
+        app.use($404Handler);
+
+        app.use(errorLogger());
+
+        app.use(errorHandler());
+
+        const server = app.listen(app.get("port"), app.get("host"), () => {
+            logger.info(
+                `Server started listening at: https://${app.get("host")}:${app.get("port")}${BASE_URL}`
+            );
+        });
+
+        server.keepAliveTimeout = KEEP_ALIVE_TIME_OUT;
+        server.headersTimeout = HEADERS_TIME_OUT;
+    } catch (error) {
+        logger.error("Failed to start User Service:", error);
+        process.exit(1);
+    }
+}
+
+process.on("unhandledRejection", (reason, promise) => {
+    logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+    process.exit(1);
 });
 
-startServer();
+process.on("uncaughtException", (err) => {
+    logger.error("Uncaught exception", err);
+    process.exit(1);
+});
+
+startServer().then(() => logger.info("User Service started successfully"));
