@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { USER_CATEGORIES, USER_ACCOUNT_STATUS } = require('../constants/userConstants');
+const { USER_CATEGORIES, USER_ACCOUNT_STATUS, ADMIN_TYPES } = require('../constants/userConstants');
 const BadRequestException = require('../exceptions/BadRequestException');
 
 const customerSchema = {
@@ -57,10 +57,11 @@ const customerSchema = {
 
 const createCustomerSchema = Joi.object({
     identifier: Joi.string().required(),
-}).concat(Joi.object(customerSchema));
+}).concat(Joi.object(customerSchema)).unknown(false);
 
-const updateCustomerSchema = Joi.object(customerSchema);
-const driverSchema = Joi.object({
+const updateCustomerSchema = Joi.object(customerSchema).unknown(false);
+
+const driverSchema = {
     name: Joi.string().trim().optional(),
     email: Joi.string().trim().lowercase().email().optional(),
     phoneNumber: Joi.string().trim().pattern(/^\+?[1-9]\d{1,14}$/).optional(),
@@ -106,17 +107,16 @@ const driverSchema = Joi.object({
         totalRides: Joi.number().optional()
     }).optional(),
     isAvailable: Joi.boolean().optional()
-}).unknown(false);
+};
 
 const createDriverSchema = Joi.object({
     identifier: Joi.string().required(),
-}).concat(Joi.object(driverSchema.describe().keys));
+}).concat(Joi.object(driverSchema)).unknown(false);
 
-const updateDriverSchema = Joi.object(driverSchema.describe().keys);
+const updateDriverSchema = Joi.object(driverSchema).unknown(false);
 
-const restaurantSchema = Joi.object({
+const restaurantSchema = {
     name: Joi.string().trim().required(),
-    identifier: Joi.string().required(),
     email: Joi.string().trim().lowercase().email().optional(),
     phoneNumber: Joi.string().trim().pattern(/^\+?[1-9]\d{1,14}$/).optional(),
     isEmailVerified: Joi.boolean().optional(),
@@ -149,7 +149,30 @@ const restaurantSchema = Joi.object({
         average: Joi.number().optional(),
         count: Joi.number().optional()
     }).optional()
-}).unknown(false);
+};
+
+const createRestaurantSchema = Joi.object({
+    identifier: Joi.string().required(),
+}).concat(Joi.object(restaurantSchema)).unknown(false);
+
+const updateRestaurantSchema = Joi.object(restaurantSchema).unknown(false);
+
+const adminSchema = {
+    name: Joi.string().trim().required(),
+    email: Joi.string().trim().lowercase().email().optional(),
+    phoneNumber: Joi.string().trim().pattern(/^\+?[1-9]\d{1,14}$/).optional(),
+    isEmailVerified: Joi.boolean().optional(),
+    isPhoneVerified: Joi.boolean().optional(),
+    profilePicture: Joi.string().trim().optional(),
+    role: Joi.string().valid(...ADMIN_TYPES).required(),
+    permissions: Joi.array().items(Joi.string()).optional(),
+};
+
+const createAdminSchema = Joi.object({
+    identifier: Joi.string().required(),
+}).concat(Joi.object(adminSchema)).unknown(false);
+
+const updateAdminSchema = Joi.object(adminSchema).unknown(false);
 
 const userByIdSchema = Joi.object({
     id: Joi.alternatives().try(
@@ -174,7 +197,10 @@ const validateCreateUser = (req, res, next) => {
             schema = createDriverSchema;
             break;
         case USER_CATEGORIES.RESTAURANT:
-            schema = restaurantSchema;
+            schema = createRestaurantSchema;
+            break;
+        case USER_CATEGORIES.ADMIN:
+            schema = createAdminSchema;
             break;
         default:
             return res.status(400).json({ error: 'Invalid user category' });
@@ -204,7 +230,10 @@ const validateUpdateUser = (req, res, next) => {
             schema = updateDriverSchema;
             break;
         case USER_CATEGORIES.RESTAURANT:
-            schema = restaurantSchema;
+            schema = updateRestaurantSchema;
+            break;
+        case USER_CATEGORIES.ADMIN:
+            schema = updateAdminSchema;
             break;
         default:
             return res.status(400).json({ error: 'Invalid user category' });

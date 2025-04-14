@@ -19,7 +19,7 @@ function getUserDetailsContext() {
  * @returns {string|undefined} The user's role ID.
  */
 function getUserRoleId() {
-    const {user} = getUserDetailsContext();
+    const { user } = getUserDetailsContext();
     return user.roleId;
 }
 
@@ -28,7 +28,7 @@ function getUserRoleId() {
  * @returns {string|undefined} The user's ID.
  */
 function getUserId() {
-    const {user} = getUserDetailsContext();
+    const { user } = getUserDetailsContext();
     return user.id;
 }
 
@@ -37,7 +37,7 @@ function getUserId() {
  * @returns {string|undefined} The user's role.
  */
 function getUserRole() {
-    const {user} = getUserDetailsContext();
+    const { user } = getUserDetailsContext();
     return user.role;
 }
 
@@ -70,7 +70,7 @@ function getCorrelationId() {
  * @returns {string|undefined} The database identifier.
  */
 function getDbIdentifier() {
-    const {dbIdentifier} = getUserTenant() || {};
+    const { dbIdentifier } = getUserTenant() || {};
     return dbIdentifier;
 }
 
@@ -79,7 +79,7 @@ function getDbIdentifier() {
  * @returns {string} The schema name.
  */
 function getSchemaName() {
-    const {tenantIdentifier} = getUserTenant() || {};
+    const { tenantIdentifier } = getUserTenant() || {};
     return `${tenantIdentifier}${DB_SCHEMA_SUFFIX}`;
 }
 

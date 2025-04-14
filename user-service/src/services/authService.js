@@ -31,7 +31,7 @@ const login = async (payload) => {
             return { status: 401, data: { message: 'Invalid password' } };
         }
 
-        const token = jwt.sign({ user: { role: user.category, id: user._id.toString(), roleId: USER_CATEGORY_TO_ID_MAP[user.category] }, tenant: TENANT }, TOKEN_SECRET, { algorithm: ALGORITH, expiresIn: EXPIRES_IN });
+        const token = jwt.sign({ user: { role: user.category, id: user.identifier, roleId: USER_CATEGORY_TO_ID_MAP[user.category] }, tenant: TENANT }, TOKEN_SECRET, { algorithm: ALGORITH, expiresIn: EXPIRES_IN });
         return { token, identifier: user.identifier, category: user.category || null, type: user.type };
     } catch (error) {
         throw error;

@@ -7,6 +7,9 @@ const ConflictException = require('../exceptions/ConflictException');
 const BadRequestException = require('../exceptions/BadRequestException');
 const Driver = require('../models/driverModel');
 const Restaurant = require('../models/restaurantModel');
+const Admin = require('../models/adminModel');
+const { getUserRole } = require('../utils/contextUtils');
+const ForbiddenException = require('../exceptions/ForbiddenException');
 
 const getUserByIdentifier = async (identifier) => {
     return User.findOne({ identifier });
@@ -28,6 +31,14 @@ const createUserByCategory = async (userData) => {
             throw new ConflictException('User already created');
         }
 
+        if ([USER_CATEGORIES.SUPER_ADMIN, USER_CATEGORIES.ADMIN].includes(category)) {
+            const userRole = getUserRole();
+            if (userRole !== USER_CATEGORIES.SUPER_ADMIN) {
+                logger.error('User not authorized to create admin');
+                throw new ForbiddenException('User not authorized to create admin');
+            }
+        }
+
         let userObject = null;
         switch (category) {
             case USER_CATEGORIES.CUSTOMER:
@@ -38,6 +49,9 @@ const createUserByCategory = async (userData) => {
                 break;
             case USER_CATEGORIES.RESTAURANT:
                 userObject = Restaurant;
+                break;
+            case USER_CATEGORIES.ADMIN:
+                userObject = Admin;
                 break;
             default:
                 logger.error('Invalid category');
@@ -69,20 +83,26 @@ const createUserByCategory = async (userData) => {
 const getAllUsersByCategory = async (category) => {
     try {
         let users = null;
+        let userObject = null;
         switch (category) {
             case USER_CATEGORIES.CUSTOMER:
-                users = await Customer.find({ accountStatus: USER_ACCOUNT_STATUS.ACTIVE });
+                userObject = Customer;
                 break;
             case USER_CATEGORIES.DRIVER:
-                users = await Driver.find({ accountStatus: USER_ACCOUNT_STATUS.ACTIVE });
+                userObject = Driver;
                 break;
             case USER_CATEGORIES.RESTAURANT:
-                users = await Restaurant.find({ accountStatus: USER_ACCOUNT_STATUS.ACTIVE });
+                userObject = Restaurant;
+                break;
+            case USER_CATEGORIES.ADMIN:
+                userObject = Admin;
                 break;
             default:
                 logger.error('Invalid category');
                 throw new BadRequestException(`Invalid category: ${category}`);
         }
+
+        users = await userObject.find({ accountStatus: USER_ACCOUNT_STATUS.ACTIVE });
         return users;
     } catch (error) {
         logger.error('Error fetching users:', error.message);
@@ -109,20 +129,24 @@ const getUserDataByIdentifier = async (category, identifier) => {
         let userObject = null;
         switch (category) {
             case USER_CATEGORIES.CUSTOMER:
-                userObject = await Customer.findOne({ identifier });
+                userObject = Customer;
                 break;
             case USER_CATEGORIES.DRIVER:
-                userObject = await Driver.findOne({ identifier });
+                userObject = Driver;
                 break;
             case USER_CATEGORIES.RESTAURANT:
-                userObject = await Restaurant.findOne({ identifier });
+                userObject = Restaurant;
+                break;
+            case USER_CATEGORIES.ADMIN:
+                userObject = Admin;
                 break;
             default:
                 logger.error('Invalid category');
                 throw new BadRequestException(`Invalid category: ${category}`);
         }
 
-        return { ...userObject._doc, verified: user.verified, type: user.type, accountStatus: user.accountStatus };
+        const userData = await userObject.findOne({ identifier });
+        return { ...userData._doc, verified: user.verified, type: user.type, accountStatus: user.accountStatus };
     } catch (error) {
         logger.error('Error fetching user:', error.message);
         throw error;
@@ -153,20 +177,24 @@ const updateUserByCategory = async (userData) => {
         let userObject = null;
         switch (category) {
             case USER_CATEGORIES.CUSTOMER:
-                userObject = await Customer.findOneAndUpdate({ identifier }, userData, { new: true });
+                userObject = Customer;
                 break;
             case USER_CATEGORIES.DRIVER:
-                userObject = await Driver.findOneAndUpdate({ identifier }, userData, { new: true });
+                userObject = Driver;
                 break;
             case USER_CATEGORIES.RESTAURANT:
-                userObject = await Restaurant.findOneAndUpdate({ identifier }, userData, { new: true });
+                userObject = Restaurant;
+                break;
+            case USER_CATEGORIES.ADMIN:
+                userObject = Admin;
                 break;
             default:
                 logger.error('Invalid category');
                 throw new BadRequestException(`Invalid category: ${category}`);
         }
+        const updatedUser = await Restaurant.findOneAndUpdate({ identifier }, userData, { new: true });
 
-        return { ...userObject._doc, verified: user.verified, type: user.type, accountStatus: user.accountStatus };
+        return { ...updatedUser._doc, verified: user.verified, type: user.type, accountStatus: user.accountStatus };
     } catch (error) {
         logger.error('Error updating user:', error.message);
         throw error;
@@ -208,6 +236,9 @@ const updateUserAccountStatusByIdentifier = async (userData, status) => {
                 break;
             case USER_CATEGORIES.RESTAURANT:
                 userObject = Restaurant;
+                break;
+            case USER_CATEGORIES.ADMIN:
+                userObject = Admin;
                 break;
             default:
                 logger.error('Invalid category');
@@ -259,6 +290,9 @@ const deleteAccountByIdentifier = async (userData, status) => {
                 break;
             case USER_CATEGORIES.RESTAURANT:
                 userObject = Restaurant;
+                break;
+            case USER_CATEGORIES.ADMIN:
+                userObject = Admin;
                 break;
             default:
                 logger.error('Invalid category');
