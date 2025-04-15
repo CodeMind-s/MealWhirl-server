@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
+const logger = require("../utils/logger");
 require("dotenv").config();
 
 const connectDB = async () => {
   const mongoURI = process.env.MONGO_URI;
   
   if (!mongoURI) {
-    console.error("MONGO_URI is not defined!");
+    logger.error("MONGO_URI is not defined!");
     throw new Error("MongoDB connection string is missing");
   }
 
@@ -14,9 +15,9 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000,
       retryWrites: true
     });
-    console.log("Service connected to MongoDB");
+    logger.info("Service connected to MongoDB");
   } catch (error) {
-    console.error("MongoDB connection error:", error);
+    logger.error("MongoDB connection error:", error);
     process.exit(1);
   }
 };
