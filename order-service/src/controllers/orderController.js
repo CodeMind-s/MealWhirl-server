@@ -1,3 +1,37 @@
+/**
+ * Order Controller Module
+ * 
+ * This module provides various functions to manage orders in the system, including creating, retrieving, updating, 
+ * assigning delivery personnel, and deleting orders. It also integrates with Kafka for messaging and logging.
+ * 
+ * Functions:
+ * - createOrder: Creates a new order and saves it to the database.
+ * - getAllOrders: Fetches all orders from the database.
+ * - getOrderById: Fetches an order by its ID.
+ * - getOrdersByUserId: Fetches all orders for a specific user by their ID.
+ * - getOrdersByRestaurantId: Fetches all orders for a specific restaurant by its ID.
+ * - getOrdersByDeliveryPersonId: Fetches all orders for a specific delivery person by their ID.
+ * - updateOrderStatus: Updates the status of an order.
+ * - assignDeliveryPerson: Assigns a delivery person to an order.
+ * - deleteOrder: Deletes an order by its ID.
+ * 
+ * Dependencies:
+ * - Order: Mongoose model for the order schema.
+ * - logger: Utility for logging information and errors.
+ * - produceMessage: Kafka service for producing messages to Kafka topics.
+ * 
+ * Error Handling:
+ * - Each function validates input parameters and throws appropriate errors if validation fails.
+ * - Errors are logged with detailed information, including stack traces.
+ * 
+ * Kafka Integration:
+ * - Kafka messages are sent for actions like order creation, status updates, and deletions.
+ * - Topics used include "user-order" and "order-status".
+ * 
+ * Logging:
+ * - Logs are generated for each action, including initialization, success, and error states.
+ * - Logs include contextual information such as order IDs, user IDs, and error details.
+ */
 const Order = require("../models/orderModel");
 const logger = require("../utils/logger");
 const { produceMessage } = require("../services/kafkaService");
@@ -115,6 +149,57 @@ exports.createOrder = async (orderData) => {
 };
 
 /**
+ * Fetches all orders from the database.
+ *
+ * @async
+ * @function getAllOrders
+ * @returns {Promise<Array<Object>>} An array of all order objects.
+ * @throws {Error} Throws an error if no orders are found or if any other error occurs during the operation.
+ */
+exports.getAllOrders = async () => {
+  try {
+    logger.info(
+      `[ORDER_SERVICE] {action:getAllOrders, status:init } Start Fetching all orders`
+    );
+    // if (!orderId) {
+    //   logger.error(
+    //     `[ORDER_SERVICE] {action:getOrderById, status:failed, reason:validation_error} Order ID is required`
+    //   );
+      // Log the error and throw a custom error with status code
+    //   const error = new Error("Order ID is required");
+    //   error.statusCode = 400;
+    //   throw error;
+    // }
+
+    const orders = await Order.find({});
+
+    if (!orders) {
+      logger.error(
+        `[ORDER_SERVICE] {action:getAllOrders, status:failed} Orders not found`
+      );
+      // Log the error and throw a custom error with status code
+      const error = new Error("Order not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    logger.info(
+      `[ORDER_SERVICE] {action:getAllOrders, status:success} Orders fetched successfully`
+    );
+    // Send message to Kafka about order retrieval
+    return orders;
+  } catch (error) {
+    logger.error(
+      `[ORDER_SERVICE] {action:getAllOrders, status:error} ${error.message}`,
+      {
+        stack: error.stack,
+      }
+    );
+    throw error;
+  }
+};
+
+/**
  * Fetches an order by its ID.
  *
  * @async
@@ -167,6 +252,16 @@ exports.getOrderById = async (orderId) => {
   }
 };
 
+/**
+ * Fetches all orders for a specific user by their ID.
+ * 
+ * @async
+ * @function getOrdersByUserId
+ * @param {string} userId - The ID of the user whose orders to fetch.
+ * @returns {Promise<Array<Object>>} An array of order objects for the specified user.
+ * @throws {Error} Throws an error if the user ID is not provided,  
+ *                if no orders are found for the user, or if any other error occurs during the operation.
+ */
 exports.getOrdersByUserId = async (userId) => {
   try {
     logger.info(
@@ -210,6 +305,16 @@ exports.getOrdersByUserId = async (userId) => {
   }
 };
 
+/**
+ * 
+ * @async
+ * @function getOrdersByRestaurantId
+ * @param {string} restaurantId - The ID of the restaurant whose orders to fetch.
+ * @returns {Promise<Array<Object>>} An array of order objects for the specified restaurant.
+ * @throws {Error} Throws an error if the restaurant ID is not provided,
+ *                 if no orders are found for the restaurant, or if any other error occurs during the operation.
+ *  
+ */
 exports.getOrdersByRestaurantId = async (restaurantId) => {
   try {
     logger.info(
@@ -253,11 +358,22 @@ exports.getOrdersByRestaurantId = async (restaurantId) => {
   }
 };
 
+/**
+ * 
+ * @async
+ * @function getOrdersByDeliveryPersonId
+ * @param {string} deliveryPersonId - The ID of the delivery person whose orders to fetch.
+ * @returns {Promise<Array<Object>>} An array of order objects for the specified delivery person.
+ * @throws {Error} Throws an error if the delivery person ID is not provided,
+ *                 if no orders are found for the delivery person, or if any other error occurs during the operation.
+ *  
+ */
 exports.getOrdersByDeliveryPersonId = async (deliveryPersonId) => {
   try {
     logger.info(
       `[ORDER_SERVICE] {action:getOrdersByDeliveryPersonId, status:init } Start Fetching orders for delivery person: ${deliveryPersonId}`
     );
+
     if (!deliveryPersonId) {
       logger.error(
         `[ORDER_SERVICE] {action:getOrdersByDeliveryPersonId, status:failed, reason:validation_error} User ID is required`
@@ -296,6 +412,20 @@ exports.getOrdersByDeliveryPersonId = async (deliveryPersonId) => {
   }
 };
 
+/**
+ * Updates the status of an order.
+ * 
+ * This function retrieves an order by its ID, updates its status, and saves the changes to the database.
+ * It also sends a Kafka message to notify about the status update.
+ * 
+ * @async
+ * @function updateOrderStatus
+ * @param {string} orderId - The ID of the order to update.
+ * @param {string} orderStatus - The new status to set for the order.
+ * @returns {Promise<Object>} The updated order object.
+ * @throws {Error} Throws an error if the order ID is not provided, 
+ *                 if the order is not found, or if any other error occurs during the operation.
+ */
 exports.updateOrderStatus = async (orderId, orderStatus) => {
   try {
     logger.info(
@@ -356,6 +486,20 @@ exports.updateOrderStatus = async (orderId, orderStatus) => {
   }
 };
 
+/**
+ * Assigns a delivery person to an order.
+ * 
+ * This function retrieves an order by its ID, assigns a delivery person to it, and saves the changes to the database.
+ * It also sends a Kafka message to notify about the assignment.
+ * 
+ * @async
+ * @function assignDeliveryPerson
+ * @param {string} orderId - The ID of the order to assign a delivery person to.
+ * @param {string} deliveryPersonId - The ID of the delivery person to assign to the order.
+ * @returns {Promise<Object>} The updated order object with the assigned delivery person.
+ * @throws {Error} Throws an error if the order ID or delivery person ID is not provided,
+ *                 if the order is not found, or if any other error occurs during the operation.
+ */
 exports.assignDeliveryPerson = async (orderId, deliveryPersonId) => {
   try {
     logger.info(
@@ -411,3 +555,66 @@ exports.assignDeliveryPerson = async (orderId, deliveryPersonId) => {
     throw error;
   }
 };
+
+/**
+ * Deletes an order by its ID.
+ * 
+ * This function retrieves an order by its ID, deletes it from the database, and sends a Kafka message to notify about the deletion.
+ * 
+ * @async
+ * @function deleteOrder
+ * @param {string} orderId - The ID of the order to delete.
+ * @returns {Promise<Object>} A success message indicating the order was deleted.
+ * @throws {Error} Throws an error if the order ID is not provided, 
+ *                 if the order is not found, or if any other error occurs during the operation.
+ */
+exports.deleteOrder = async (orderId) => {
+ try {
+    logger.info(
+      `[ORDER_SERVICE] {action:deleteOrder, status:init} Deleting order ${orderId}`
+    );
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      logger.warn(
+        `[ORDER_SERVICE] {action:deleteOrder, status:failed, reason:order_not_found} Order not found: ${orderId}`
+      );
+      const error = new Error("Order not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await Order.findByIdAndDelete(orderId);
+
+    logger.info(
+      `[ORDER_SERVICE] {action:deleteOrder, status:success} Deleted order ${orderId}`
+    );
+
+    // Send message to Kafka about order deletion
+    await produceMessage("order-status", {
+      orderId,
+      userId: order.userId,
+      action: "delete",
+      timestamp: new Date().toISOString(),
+    });
+
+    logger.info(
+      `[ORDER_SERVICE] {action:deleteOrder, kafka:order-status, status:sent} Kafka message sent`,
+      {
+        orderId,
+      }
+    );
+
+    return { message: "Order deleted successfully" };
+  }
+  catch (error) {
+    logger.error(
+      `[ORDER_SERVICE] {action:deleteOrder, status:error} ${error.message}`,
+      {
+        orderId,
+        stack: error.stack,
+      }
+    );
+    throw error;
+  }
+}
