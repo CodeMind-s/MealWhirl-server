@@ -203,7 +203,7 @@ const validateCreateUser = (req, res, next) => {
             schema = createAdminSchema;
             break;
         default:
-            return res.status(400).json({ error: 'Invalid user category' });
+            return next(new BadRequestException('Invalid user category'));
     }
     const { error } = schema.validate(payload, { abortEarly: false });
     if (error) {
@@ -236,7 +236,7 @@ const validateUpdateUser = (req, res, next) => {
             schema = updateAdminSchema;
             break;
         default:
-            return res.status(400).json({ error: 'Invalid user category' });
+            return new BadRequestException('Invalid user category');
     }
     const { error: payloadError } = schema.validate(payload, { abortEarly: false });
     if (payloadError) {

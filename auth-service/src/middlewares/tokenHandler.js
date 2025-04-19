@@ -31,7 +31,7 @@ const tokenHandler = () => {
             return next(new UnauthorizedException('Authorization token missing from the header'));
         }
         try {
-            const decoded = verify(authorizationToken, getPublicKey(), { algorithms: [ALGORITHM], issuer: ISSUER });
+            const decoded = decode(authorizationToken);
             const {user, tenant} = decoded;
             httpContext.set(USER_DETAILS_CONTEXT_KEY, {user, tenant});
             httpContext.set(AUTHORIZATION_CONTEXT_KEY, authorizationToken);

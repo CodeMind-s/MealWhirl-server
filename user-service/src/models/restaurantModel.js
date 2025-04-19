@@ -50,13 +50,24 @@ const RestaurantSchema = new mongoose.Schema(
     },
     menu: [
       {
-        name: String,
+        name: {
+          type: String,
+          required: true,
+          trim: true,
+          unique: true // Ensure each menu item has a unique name
+        },
         description: String,
         price: Number,
         image: String, // URL to the image
         ingredients: [String], // List of ingredients
         dietaryRestrictions: [String], // e.g., Vegan, Gluten-Free
         category: String, // e.g., Appetizer, Main Course, Dessert
+        rating: {
+          type: Number,
+          default: 0,
+          min: 0,
+          max: 5
+        },
         isAvailable: {
           type: Boolean,
           default: true
@@ -66,7 +77,9 @@ const RestaurantSchema = new mongoose.Schema(
     ratings: {
       average: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0,
+        max: 5
       },
       count: {
         type: Number,

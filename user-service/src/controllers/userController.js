@@ -1,7 +1,6 @@
 const userService = require('../services/userService');
 const { createSuccessResponse } = require("../utils/responseGenerator");
 const { appendExceptionStack } = require("../utils/exceptionUtils");
-const { USER_ACCOUNT_STATUS } = require('../constants/userConstants');
 
 const createUserByCategory = async (req, res, next) => {
   const { category } = req.params;

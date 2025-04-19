@@ -1,13 +1,9 @@
 const { USER_CATEGORIES, USER_ACCOUNT_STATUS } = require('../constants/userConstants');
-const Customer = require('../models/customerModel');
 const User = require('../models/userModel');
 const logger = require('../utils/logger');
 const NotFoundException = require('../exceptions/NotFoundException');
 const ConflictException = require('../exceptions/ConflictException');
 const BadRequestException = require('../exceptions/BadRequestException');
-const Driver = require('../models/driverModel');
-const Restaurant = require('../models/restaurantModel');
-const Admin = require('../models/adminModel');
 const { getUserRole } = require('../utils/contextUtils');
 const ForbiddenException = require('../exceptions/ForbiddenException');
 const { getModelByCategory } = require('../utils/userUtils');
@@ -21,9 +17,7 @@ const createUserByCategory = async (userData) => {
     try {
         const { identifier, category } = userData;
 
-        const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
-
-        const user = await getUserByIdentifier(identifier, filterCategory);
+        const user = await getUserByIdentifier(identifier, USER_CATEGORIES.REGISTERD);
 
         if (!user) {
             logger.error('User not found');
