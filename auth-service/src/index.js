@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const httpContext = require("express-http-context");
 require("dotenv").config();
+const connectDB = require("./config/db");
 const errorHandler = require("./middlewares/errorHandler");
 const tokenHandler = require("./middlewares/tokenHandler");
 const $404Handler = require('./middlewares/404Handler');
@@ -23,6 +24,9 @@ const {
 
 const startServer = async () => {
     try {
+        await connectDB();
+        logger.info("MongoDB connected successfully");
+
         await initKafkaProducer();
         logger.info("Kafka Producer initialized");
         
@@ -63,14 +67,14 @@ const startServer = async () => {
 
         const server = app.listen(app.get("port"), app.get("host"), () => {
             logger.info(
-                `Server started listening at: http://${app.get("host")}:${app.get("port")}${BASE_URL}`
+                `Server started listening at: https://${app.get("host")}:${app.get("port")}${BASE_URL}`
             );
         });
 
         server.keepAliveTimeout = KEEP_ALIVE_TIME_OUT;
         server.headersTimeout = HEADERS_TIME_OUT;
     } catch (error) {
-        logger.error("Failed to start API Gateway:", error);
+        logger.error("Failed to start Auth Service:", error);
         process.exit(1);
     }
 }
@@ -85,4 +89,4 @@ process.on("uncaughtException", (err) => {
     process.exit(1);
 });
 
-startServer().then(() => logger.info("API Gateway started successfully"));
+startServer().then(() => logger.info("Auth Service started successfully"));

@@ -59,10 +59,6 @@ const startServer = async () => {
 
         app.use(BASE_URL, router);
 
-        app.get("/health", (req, res) => {
-            res.status(200).send("User Service is healthy");
-        });
-
         app.use($404Handler);
 
         app.use(errorLogger());
@@ -71,7 +67,7 @@ const startServer = async () => {
 
         const server = app.listen(app.get("port"), app.get("host"), () => {
             logger.info(
-                `Server started listening at: https://${app.get("host")}:${app.get("port")}${BASE_URL}`
+                `Server started listening at: http://${app.get("host")}:${app.get("port")}${BASE_URL}`
             );
         });
 
