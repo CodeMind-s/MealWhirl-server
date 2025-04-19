@@ -1,13 +1,10 @@
 const jwt = require('jsonwebtoken');
-const { TOKEN_SECRET, TENANT } = require("../constants/configConstants");
+const { TOKEN_SECRET, TENANT, TOKEN_EXPIRATION, ALGORITHM, ISSUER } = require("../constants/configConstants");
 const User = require('../models/userModel');
 const logger = require('../utils/logger');
 const userService = require('./userService');
 const { USER_ACCOUNT_STATUS, USER_CATEGORIES, USER_CATEGORY_TO_ID_MAP } = require("../constants/userConstants");
 const ForbiddenException = require('../exceptions/ForbiddenException');
-
-const ALGORITH = 'RS256';
-const EXPIRES_IN = '1h';
 
 const login = async (payload) => {
     try {
@@ -31,7 +28,7 @@ const login = async (payload) => {
             return { status: 401, data: { message: 'Invalid password' } };
         }
 
-        const token = jwt.sign({ user: { role: user.category, id: user.identifier, roleId: USER_CATEGORY_TO_ID_MAP[user.category] }, tenant: TENANT }, TOKEN_SECRET, { algorithm: ALGORITH, expiresIn: EXPIRES_IN });
+        const token = jwt.sign({ user: { role: user.category, id: user.identifier, roleId: USER_CATEGORY_TO_ID_MAP[user.category] }, tenant: TENANT }, TOKEN_SECRET, { algorithm: ALGORITHM, expiresIn: TOKEN_EXPIRATION, issuer: ISSUER });
         return { token, identifier: user.identifier, category: user.category || null, type: user.type };
     } catch (error) {
         throw error;
@@ -45,6 +42,7 @@ const login = async (payload) => {
  */
 const register = async (payload) => {
     try {
+        console.log(TOKEN_SECRET);
         const { type, password } = payload;
         const identifier = payload[type];
 

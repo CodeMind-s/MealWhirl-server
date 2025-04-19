@@ -55,6 +55,8 @@ services:
       - PORT=5002
       - ENV=dev
       - KAFKA_BROKER=kafka:9092
+      - TOKEN_SECRET=-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC3sCd/cbG3DYuf\nbwfc7NgXZk+vgJkGJxwll4MTc0PpTOe/FJcmPeudTanVlmx6BlvidWy5t22o217q\nAoQvbiyzYzTCTCnpWvjlp1u3X+dE9WU2y2Xz1bFdrcnwGK04fugMGJykxjh/euIl\n15qY64QUVCBG1eniVI2G0MoLOsd6HDTJ62zVdBXVoi0bodzKNCKYpJXzwPNgIu5o\nZYXyPnOiofaHTwhWPft9yG/E0W78k7oBWFZJh6U4OTi6taZhoJy2tpDk3gWLZdGp\nZ9zmyoHZsOB4DIS+4agCFNaZQyDXc4Nz3BHo343UfeexxSpSQXn29MQttmcGs8ni\nW5lYYVBRAgMBAAECggEAUHGPyqti9dSzyd3ZJrJ+rDi9OxHpch1coUXqPHFlU12/\nvBnrW+8QKXKipwxac1InmVRtiiO/nYx806TIePEaGHGg4Fp0nGKf0AtsCjGw2a1S\nZx3Kh2+VXn5GiqRz7+L8ApggubSpd4K8WXBDnya9UB3LiNoTtG/tDxaO9T4Hr/y9\nrgEcflKmblSKgJiI74FOBfXEh/bOZfmKg2AjZlbpPtZcHMgd31XUz5yzsPrK7tE6\nfKpmhPqFY3sacSjzZth9YeFez+Pm+Jo5dlkbtgKSZH4jjUhMJnpuA5llrk8wodnC\nmQeQ8sBa4fmElsK0sP/Td+YsiJMJ1pL/ijt5egSKlQKBgQDsGSziuOySuQBC3Kx7\n0IYix/w/aQB0lPJFou7WrvgRntI6JQsou9Q0tLDfCo3EywVNwmDnJLbQ3pwwb//P\ntEiod/bDnjgAFwlEnnqM8IwnRSjEiIJg4Ed21TO8PKG1dY/exaXcPp0r217BHrHW\nHluuREPSbyL3rQXPpsLJFjGKLwKBgQDHLAFjF+zyjYlQ/3gEypmj4QADShB5QbIc\n/msFFRrFHQNBccYw77/JUtmUp7CCyBTLCzvxjZx1pGrTLreeE1JeUCdKClG5UBDu\nMHbcNjrakPWIpLcAaEwR/ge43Wc6lUoCSwZf0Oeu3ZnuozVVywRXSpptcWhk+vbg\nPTqkvFStfwKBgQCilsO+brMcZ6KyaN2vdm6pTSd9U4YowtoE8quf1GapW8JSoGgK\n6S6+DSEwuEfhGh7Q6edpxnLPbD4LbVWxZ+oRemvJUxAln7eWNb0XiiA6evoUPh3r\nMQiF4VT7cJW8LPWi6GHMRqJeLXgXblfxqH5iiEhchoSCI/k4gxLpAAulqQKBgQCs\n49UcaLNlZVkyd2B+gEPYDsMNF+iu6Uksg+jwU36WZnXiBFovNp57qzB2Kw48qGPs\nUQcqymtrb1rPkLkRPeJ9PgSs78I7I3Ze3LEAvQ5flf+dKqY0c1S9NY8MeRxXrSm+\nTdPtrpC+qVwq23+7xmwxPfBJWm1tYrCUvHHAeD7lDwKBgQCpRaXrg63jcQXnS10C\nVMnZkS5lXZalkCjjrNTyVe7/piXWKXkXNjnERHSno9fLwF2hfCpLQvkshZJ68D2l\nPfJFVo+4F11hvwBhD9G5/z8VXFfsDqT1GKL51gpE1XuFqKVCKta3jzKZ/eVgAyuW\nrOrLZfwxDMopbBiNpJxH0oSx2A==\n-----END PRIVATE KEY-----
+      - TOKEN_EXPIRATION=1h
       - MONGO_URI=mongodb+srv://randini:Randini@cluster0.ojx49ry.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
     depends_on:
       - kafka
@@ -72,6 +74,7 @@ services:
       - PORT=5000
       - ENV=dev
       - KAFKA_BROKER=kafka:9092
+      - TOKEN_EXPIRATION=3600
     networks:
       - mealwhirl-network
 

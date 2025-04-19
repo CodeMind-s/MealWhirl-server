@@ -4,7 +4,9 @@ const { appendExceptionStack } = require('../utils/exceptionUtils');
 const {
     AUTHORIZATION_CONTEXT_KEY,
     BASE_URL,
-    USER_DETAILS_CONTEXT_KEY
+    USER_DETAILS_CONTEXT_KEY,
+    ALGORITHM,
+    ISSUER
 } = require('../constants/configConstants');
 const UnauthorizedException = require('../exceptions/UnauthorizedException');
 
@@ -29,8 +31,7 @@ const tokenHandler = () => {
             return next(new UnauthorizedException('Authorization token missing from the header'));
         }
         try {
-            // const decoded = verify(authorizationToken, getPublicKey(), { algorithms: [ALGORITHM], issuer: ISSUER });
-            const decoded = decode(authorizationToken);
+            const decoded = verify(authorizationToken, getPublicKey(), { algorithms: [ALGORITHM], issuer: ISSUER });
             const {user, tenant} = decoded;
             httpContext.set(USER_DETAILS_CONTEXT_KEY, {user, tenant});
             httpContext.set(AUTHORIZATION_CONTEXT_KEY, authorizationToken);
