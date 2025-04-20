@@ -33,6 +33,7 @@ const tokenHandler = () => {
       );
     }
     try {
+      // const decoded = verify(authorizationToken, getPublicKey(), { algorithms: [ALGORITHM], issuer: ISSUER });
       const decoded = decode(authorizationToken);
       const { user, tenant } = decoded;
       httpContext.set(USER_DETAILS_CONTEXT_KEY, { user, tenant });
