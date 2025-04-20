@@ -18,7 +18,7 @@ const initKafkaProducer = async () => {
 
 const initKafkaConsumer = async () => {
     // Require controller here to avoid circular dependency
-    userController = require('../controllers/userController');
+    userController = require('../controllers/commonUserController');
 
     await consumer.connect();
 
