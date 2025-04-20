@@ -1,32 +1,43 @@
-const { createLogger, format, transports } = require('winston');
-const chalk = require('chalk');
+const winston = require('winston');
+const httpContext = require('express-http-context');
+const { ENV, USER_DETAILS_CONTEXT_KEY } = require('../constants/configConstants');
 
-const logger = createLogger({
-    level: 'info',
-    format: format.combine(
-        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        format.printf(({ timestamp, level, message }) => {
-            let consoleMessage = `[node] - ${timestamp} ${level.toUpperCase()} [API-GATEWAY] ${message}`;
-            let colouredConsoleMessage;
-
-            switch (level) {
-                case 'info':
-                    colouredConsoleMessage = chalk.green(consoleMessage);
-                    break;
-                case 'warn':
-                    colouredConsoleMessage = chalk.yellow(consoleMessage);
-                    break;
-                case 'error':
-                    colouredConsoleMessage = chalk.red(consoleMessage);
-                    break;
-                default:
-                    colouredConsoleMessage = consoleMessage;
-            }
-
-            return colouredConsoleMessage;
+/**
+ * Create a new winston logger.
+ */
+const level = ENV === 'test' ? 'debug' : 'info';
+const logger = winston.createLogger({
+    transports: [
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.colorize(),
+                winston.format.timestamp(),
+                winston.format.align(),
+                winston.format.printf((info) => {
+                    const userDetails = httpContext.get(USER_DETAILS_CONTEXT_KEY);
+                    const correlationId = httpContext.get('correlation-id') || 'NO_CORRELATION';
+                    const tenantCode = userDetails ? userDetails.tenant.tenantIdentifier : 'NO_TENANT';
+                    return `${info.level}|${correlationId}|${tenantCode}|${info.timestamp}:${info.message}`;
+                })
+            ),
+            level
+        }),
+        new winston.transports.Console({
+            format: winston.format.combine(winston.format.prettyPrint()),
+            level: 'error'
         })
-    ),
-    transports: [new transports.Console()],
+    ]
 });
+
+exports.logStream = {
+    /**
+     * A writable stream for winston logger.
+     *
+     * @param {any} message
+     */
+    write(message) {
+        logger.info(message.toString());
+    }
+};
 
 module.exports = logger;

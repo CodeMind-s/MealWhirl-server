@@ -1,53 +1,55 @@
-const User = require('../models/userModel');
+const userService = require('../services/userService');
+const { createSuccessResponse } = require("../utils/responseGenerator");
+const { appendExceptionStack } = require("../utils/exceptionUtils");
 
-exports.createUser = async (userData) => {
-  try {
-    const { name, email, address } = userData;
-    
-    if (!name || !email) {
-      const error = new Error('Name and email are required');
-      error.statusCode = 400;
-      throw error;
-    }
-    
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    
-    if (existingUser) {
-      const error = new Error('User with this email already exists');
-      error.statusCode = 400;
-      throw error;
-    }
-    
-    // Create new user
-    const user = new User({
-      name,
-      email,
-      address
-    });
-    
-    const savedUser = await user.save();
-    
-    return savedUser;
-  } catch (error) {
-    console.error('Error creating user:', error);
-    throw error;
-  }
+const createUserByCategory = async (req, res, next) => {
+  const { category } = req.params;
+  userService.createUserByCategory({ ...req.body, category })
+    .then((value) => res.status(201).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
 };
 
-exports.getUserById = async (userId) => {
-  try {
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      const error = new Error('User not found');
-      error.statusCode = 404;
-      throw error;
-    }
-    
-    return { user };
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    throw error;
-  }
-};
+const getAllUsersByCategory = async (req, res, next) => {
+  const { category } = req.params;
+  userService.getAllUsersByCategory(category)
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
+const getUserByIdentifier = async (req, res, next) => {
+  const { category, id: identifier } = req.params;
+  userService.getUserDataByIdentifier(category, identifier)
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
+const updateUserByCategory = async (req, res, next) => {
+  const { category, id: identifier } = req.params;
+  userService.updateUserByCategory({ ...req.body, category, identifier })
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
+const updateUserAccountStatusByIdentifier = async (req, res, next) => {
+  const { category, id: identifier } = req.params;
+  const { status } = req.body;
+  userService.updateUserAccountStatusByIdentifier({ category, identifier }, status)
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
+const deleteAccountByIdentifier = async (req, res, next) => {
+  const { category, id: identifier } = req.params;
+  userService.deleteAccountByIdentifier({ category, identifier })
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
+module.exports = {
+  createUserByCategory,
+  getAllUsersByCategory,
+  getUserByIdentifier,
+  updateUserByCategory,
+  updateUserAccountStatusByIdentifier,
+  deleteAccountByIdentifier
+}
