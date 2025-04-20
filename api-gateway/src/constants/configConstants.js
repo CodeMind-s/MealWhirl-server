@@ -6,7 +6,10 @@ const APP_PORT =
     (process.env.NODE_ENV === 'test' ? process.env.TEST_APP_PORT : process.env.APP_PORT) || process.env.PORT || '3000';
 const APP_HOST = process.env.APP_HOST || '0.0.0.0';
 const ENV = process.env.ENV || 'test';
-const TOKEN_SECRET = ENV === 'test'?  process.env.TEST_TOKEN_SECRET || '' : process.env.TOKEN_SECRET || ''; // move this to secure place
+const TOKEN_SECRET = ENV === 'test'?  process.env.TEST_TOKEN_SECRET?.replace(/\\n/g, '\n') || '' : process.env.TOKEN_SECRET?.replace(/\\n/g, '\n') || ''; // move this to secure place
+const TOKEN_EXPIRATION = process.env.TOKEN_EXPIRATION || '1h';
+const ALGORITHM = process.env.ALGORITHM || 'RS256';
+const ISSUER = process.env.ISSUER || 'auth-service';
 const TENANT = {
     tenantIdentifier: process.env.TENANT_IDENTIFIER || 'tenant_identifier',
     dbIdentifier: process.env.DB_IDENTIFIER || 'db_identifier'
@@ -42,5 +45,8 @@ module.exports = {
     IMMEDIATE_LOG_FORMAT,
     LOG_FORMAT,
     TOKEN_SECRET,
-    TENANT
+    TENANT,
+    TOKEN_EXPIRATION,
+    ALGORITHM,
+    ISSUER,
 };
