@@ -1,9 +1,10 @@
-const mongoose = require('mongoose');
-const { USER_ACCOUNT_STATUS } = require('../constants/userConstants');
+const mongoose = require("mongoose");
+const { USER_ACCOUNT_STATUS } = require("../constants/userConstants");
+const User = require("./userModel");
 
 /**
  * RestaurantSchema defines the structure of the restaurant document in MongoDB.
- * 
+ *
  * Required Fields:
  * - `identifier` (Users primary key): The unique identifier for the restaurant.
  **/
@@ -12,41 +13,43 @@ const RestaurantSchema = new mongoose.Schema(
     identifier: {
       type: String,
       unique: true,
-      required: true
+      required: true,
     },
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     email: {
       type: String,
       trim: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Invalid email format']
+      match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
     phoneNumber: {
       type: String,
       trim: true,
-      match: [/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format']
+      match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"],
     },
     address: {
-      street: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String
+      street: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      zipCode: { type: String, required: true },
+      country: { type: String, required: true },
     },
     location: {
       type: {
-        type: String,
-        enum: ['Point'],
-        required: true
+        latitude: {
+          type: Number,
+          required: true,
+        },
+        longitude: {
+          type: Number,
+          required: true,
+        },
       },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        required: true
-      }
+      required: true, // Make the entire location object mandatory
     },
     menu: [
       {
@@ -54,7 +57,7 @@ const RestaurantSchema = new mongoose.Schema(
           type: String,
           required: true,
           trim: true,
-          unique: true // Ensure each menu item has a unique name
+          unique: true, // Ensure each menu item has a unique name
         },
         description: String,
         price: Number,
@@ -66,44 +69,77 @@ const RestaurantSchema = new mongoose.Schema(
           type: Number,
           default: 0,
           min: 0,
-          max: 5
+          max: 5,
         },
         isAvailable: {
           type: Boolean,
-          default: true
-        }
-      }
+          default: true,
+        },
+      },
     ],
     ratings: {
       average: {
         type: Number,
         default: 0,
         min: 0,
-        max: 5
+        max: 5,
       },
       count: {
         type: Number,
-        default: 0
-      }
+        default: 0,
+      },
     },
     accountStatus: {
       type: String,
       enum: Object.values(USER_ACCOUNT_STATUS),
       default: USER_ACCOUNT_STATUS.INACTIVE,
     },
+    createdBy: {
+      type: String,
+      required: true,
+    },
+    updatedBy: {
+      type: String,
+      required: true,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
+RestaurantSchema.pre("save", async function (next) {
+  try {
+    const createdByExists = await User.exists({ identifier: this.createdBy });
+    const updatedByExists = await User.exists({ identifier: this.updatedBy });
+
+    if (!createdByExists) {
+      return next(
+        new Error(
+          "The `createdBy` value does not correspond to an existing user identifier."
+        )
+      );
+    }
+    if (!updatedByExists) {
+      return next(
+        new Error(
+          "The `updatedBy` value does not correspond to an existing user identifier."
+        )
+      );
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Custom validation to ensure at least one of email or phoneNumber is provided
-RestaurantSchema.pre('validate', function (next) {
+RestaurantSchema.pre("validate", function (next) {
   if (!this.email && !this.phoneNumber) {
-    next(new Error('At least one of email or phoneNumber is required.'));
+    next(new Error("At least one of email or phoneNumber is required."));
   } else {
     next();
   }
 });
 
-module.exports = mongoose.model('Restaurant', RestaurantSchema);
+module.exports = mongoose.model("Restaurant", RestaurantSchema);

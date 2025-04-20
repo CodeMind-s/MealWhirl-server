@@ -1,6 +1,6 @@
 const USER_IDENTIFIER_TYPES = {
     EMAIL: "email",
-    PHONE: "phone"
+    PHONE: "phoneNumber"
 };
 
 const USER_CATEGORIES = {
