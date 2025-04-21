@@ -1,7 +1,7 @@
 /**
  * Application Constants
  */
-const BASE_URL = "/auth-service/v1";
+const BASE_URL = "/v1";
 const APP_PORT =
     (process.env.NODE_ENV === 'test' ? process.env.TEST_APP_PORT : process.env.APP_PORT) || process.env.PORT || '3000';
 const APP_HOST = process.env.APP_HOST || '0.0.0.0';

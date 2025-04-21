@@ -6,7 +6,7 @@ const authRoutes = require('./routes/authRoutes');
  */
 const router = Router();
 
-router.use('/auth', authRoutes);
+router.use('/', authRoutes);
 router.use('/health', (req, res) => {
     res.status(200).send("Auth Service is healthy");
 });

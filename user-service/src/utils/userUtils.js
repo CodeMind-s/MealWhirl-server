@@ -1,8 +1,10 @@
 const { USER_CATEGORIES } = require("../constants/userConstants");
+const BadRequestException = require("../exceptions/BadRequestException");
 const adminModel = require("../models/adminModel");
 const customerModel = require("../models/customerModel");
 const driverModel = require("../models/driverModel");
 const restaurantModel = require("../models/restaurantModel");
+const logger = require("./logger");
 
 const categoryModelMap = {
     [USER_CATEGORIES.CUSTOMER]: customerModel,

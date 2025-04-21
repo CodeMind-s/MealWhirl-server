@@ -142,7 +142,8 @@ const getAllUsersByCategory = async (category) => {
 
 const getUserDataByIdentifier = async (category, identifier) => {
   try {
-    const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
+    const isAdmin = category === USER_CATEGORIES.ADMIN;
+    const filterCategory = isAdmin ? null : category;
 
     const user = await getUserByIdentifier(identifier, filterCategory);
 
@@ -155,7 +156,8 @@ const getUserDataByIdentifier = async (category, identifier) => {
       throw new ConflictException("User not active");
     }
 
-    const userObject = getModelByCategory(category);
+    const categoryToUse = isAdmin ? user.category : category;
+    const userObject = getModelByCategory(categoryToUse);
 
     const userData = await userObject.findOne({ identifier });
     return {

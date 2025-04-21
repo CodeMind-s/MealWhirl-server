@@ -8,12 +8,14 @@ const customerRoutes = require('./routes/customerRoutes')
  */
 const router = Router();
 
-router.use('/users', commonUserRoutes);
+router.use('/', commonUserRoutes);
 router.use('/driver', driverRoutes);
 router.use('/customer', customerRoutes);
 router.use('/health', (req, res) => {
     res.status(200).send("User Service is healthy");
 });
-
+router.use('/', (req, res) => {
+    res.status(200).send("User Service API Docs are available");
+});
 
 module.exports = router
