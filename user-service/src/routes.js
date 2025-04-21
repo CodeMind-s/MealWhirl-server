@@ -1,14 +1,16 @@
 const { Router } = require('express');
-const userRoutes = require('./routes/userRoutes');
-const userActionsRoutes = require('./routes/userActionsRoutes');
+const commonUserRoutes = require('./routes/commonUserRoutes');
+const driverRoutes = require('./routes/driverRoutes')
+const customerRoutes = require('./routes/customerRoutes')
 
 /**
  * Contains all API routes for the application.
  */
 const router = Router();
 
-router.use('/users', userRoutes);
-router.use('/user-actions', userActionsRoutes);
+router.use('/users', commonUserRoutes);
+router.use('/driver', driverRoutes);
+router.use('/customer', customerRoutes);
 router.use('/health', (req, res) => {
     res.status(200).send("User Service is healthy");
 });

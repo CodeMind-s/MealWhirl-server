@@ -154,7 +154,7 @@ const userByIdSchema = Joi.object({
     .required(),
 }).unknown(false);
 
-const userItemValidator = (req, res, next) => {
+const addUserItemValidator = (req, res, next) => {
   const payload = req.body;
   const { category } = req.params;
 
@@ -192,4 +192,49 @@ const userItemValidator = (req, res, next) => {
   next();
 };
 
-module.exports = userItemValidator;
+const deletdUserOptionSchema = Joi.object({
+  optionKey: Joi.string().valid("menu").required().messages({
+    "string.base": "Option key must be a string.",
+    "string.empty": "Option key is required.",
+    "any.required": "Option key is required.",
+  }),
+  name: Joi.string().required().messages({
+    "string.base": "Name must be a string.",
+    "string.empty": "Name is required.",
+    "any.required": "Name is required.",
+  }),
+}).unknown(false);
+
+const deleteUserItemValidator = (req, res, next) => {
+  const { category } = req.params;
+
+  if (!Object.values(USER_CATEGORIES).includes(category)) {
+    next(new BadRequestException("Invalid user category"));
+  }
+
+  const { error: paramsError } = userByIdSchema.validate(req.params, {
+    abortEarly: false,
+  });
+  if (paramsError) {
+    return next(
+      new BadRequestException(
+        paramsError.details.map((err) => err.message).join(", ")
+      )
+    );
+  }
+
+  const { error } = deletdUserOptionSchema.validate(req.body, {
+    abortEarly: false,
+  });
+  if (error) {
+    const errorMessage = error.details.map((err) => err.message).join(", ");
+    return next(new BadRequestException(errorMessage));
+  }
+
+  next();
+};
+
+module.exports = {
+  addUserItemValidator,
+  deleteUserItemValidator
+};

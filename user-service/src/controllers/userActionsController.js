@@ -9,6 +9,14 @@ const updateUserItemsByCategory = async (req, res, next) => {
       .catch((err) => next(appendExceptionStack(err)));
   }
 
+  const deleteUserItemsByCategory = async (req, res, next) => {
+    const { category, id: identifier } = req.params;
+    userActionsService.deleteUserItemsByCategory({ ...req.body, category, identifier })
+      .then((value) => res.status(200).json(createSuccessResponse(value)))
+      .catch((err) => next(appendExceptionStack(err)));
+  }
+
   module.exports = {
-    updateUserItemsByCategory
+    updateUserItemsByCategory,
+    deleteUserItemsByCategory
   }

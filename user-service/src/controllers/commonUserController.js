@@ -1,4 +1,4 @@
-const userService = require('../services/userService');
+const userService = require('../services/commonUserService');
 const { createSuccessResponse } = require("../utils/responseGenerator");
 const { appendExceptionStack } = require("../utils/exceptionUtils");
 

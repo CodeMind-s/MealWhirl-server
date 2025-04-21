@@ -67,7 +67,7 @@ const startServer = async () => {
 
         const server = app.listen(app.get("port"), app.get("host"), () => {
             logger.info(
-                `Server started listening at: https://${app.get("host")}:${app.get("port")}${BASE_URL}`
+                `Server started listening at: http://${app.get("host")}:${app.get("port")}${BASE_URL}`
             );
         });
 

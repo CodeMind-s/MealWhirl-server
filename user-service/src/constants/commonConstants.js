@@ -1,9 +1,20 @@
-// Role constants for the system
-const ROLES = {
-    CUSTOMER: { id: 3, name: 'Customer' },
-    DRIVER: { id: 4, name: 'Driver' },
-    RESTAURANT_ADMIN: { id: 2, name: 'Restaurant Admin' },
-    SUPER_ADMIN: { id: 1, name: 'Super Admin' }
+const RIDE_STATUS = {
+    PENDING: 'Pending',
+    IN_PROGRESS: 'In Progress',
+    COMPLETED: 'Completed',
+    CANCELLED: 'Cancelled'
 };
 
-module.exports = ROLES;
+const VEHICLE_TYPES = {
+    CAR: 'Car',
+    SUV: 'SUV',
+    TRUCK: 'Truck',
+    VAN: 'Van',
+    MOTORCYCLE: 'Motorcycle',
+    THREE_WHEELER: 'Three Wheeler'
+};
+
+module.exports = {
+    RIDE_STATUS,
+    VEHICLE_TYPES
+};

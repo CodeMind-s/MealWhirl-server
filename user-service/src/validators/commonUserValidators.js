@@ -1,59 +1,16 @@
 const Joi = require('joi');
-const { USER_CATEGORIES, USER_ACCOUNT_STATUS, ADMIN_TYPES } = require('../constants/userConstants');
+const { USER_CATEGORIES, USER_ACCOUNT_STATUS, ADMIN_TYPES, USER_IDENTIFIER_TYPES } = require('../constants/userConstants');
 const BadRequestException = require('../exceptions/BadRequestException');
+const { VEHICLE_TYPES } = require('../constants/commonConstants');
 
-const customerSchema = {
+const defaultUserSchema = {
     name: Joi.string().trim().optional(),
-    email: Joi.string().trim().lowercase().email().optional(),
-    phoneNumber: Joi.string().trim().pattern(/^\+?[1-9]\d{1,14}$/).optional(),
-    isEmailVerified: Joi.boolean().optional(),
-    isPhoneVerified: Joi.boolean().optional(),
-    profilePicture: Joi.string().trim().optional(),
-    address: Joi.object({
-        street: Joi.string().optional(),
-        city: Joi.string().optional(),
-        state: Joi.string().optional(),
-        zipCode: Joi.string().optional(),
-        country: Joi.string().optional()
-    }).optional(),
-    location: Joi.object({
-        latitude: Joi.number().required(),
-        longitude: Joi.number().required()
-    }).optional(),
-    saved: Joi.array().items(
-        Joi.object({
-            latitude: Joi.number().optional(),
-            longitude: Joi.number().optional(),
-            label: Joi.string().optional(),
-            isPrimary: Joi.boolean().optional()
-        })
-    ).optional(),
-    paymentMethods: Joi.array().items(Joi.string()).optional(),
-    rideHistory: Joi.array().items(
-        Joi.object({
-            rideId: Joi.string().optional(),
-            pickupLocation: Joi.object({
-                latitude: Joi.number().optional(),
-                longitude: Joi.number().optional()
-            }).optional(),
-            dropOffLocation: Joi.object({
-                latitude: Joi.number().optional(),
-                longitude: Joi.number().optional()
-            }).optional(),
-            fare: Joi.number().optional(),
-            date: Joi.date().optional(),
-            driver: Joi.object({
-                name: Joi.string().optional(),
-                driverId: Joi.string().optional()
-            }).optional(),
-            vehicle: Joi.object({
-                make: Joi.string().optional(),
-                model: Joi.string().optional(),
-                licensePlate: Joi.string().optional()
-            }).optional()
-        })
-    ).optional()
+    [USER_IDENTIFIER_TYPES.EMAIL]: Joi.string().trim().lowercase().email().optional(),
+    [USER_IDENTIFIER_TYPES.PHONE]: Joi.string().trim().pattern(/^\+?[1-9]\d{1,14}$/).optional(),    
+    profilePicture: Joi.string().trim().optional()
 };
+
+const customerSchema = defaultUserSchema;
 
 const createCustomerSchema = Joi.object({
     identifier: Joi.string().required(),
@@ -62,51 +19,11 @@ const createCustomerSchema = Joi.object({
 const updateCustomerSchema = Joi.object(customerSchema).unknown(false);
 
 const driverSchema = {
-    name: Joi.string().trim().optional(),
-    email: Joi.string().trim().lowercase().email().optional(),
-    phoneNumber: Joi.string().trim().pattern(/^\+?[1-9]\d{1,14}$/).optional(),
-    isEmailVerified: Joi.boolean().optional(),
-    isPhoneVerified: Joi.boolean().optional(),
-    profilePicture: Joi.string().trim().optional(),
-    vehicle: Joi.object({
-        make: Joi.string().required(),
-        model: Joi.string().required(),
-        licensePlate: Joi.string().required(),
-        image: Joi.string().optional(),
-        color: Joi.string().optional()
-    }).required(),
-    location: Joi.object({
-        latitude: Joi.number().required(),
-        longitude: Joi.number().required()
-    }).optional(),
-    rideHistory: Joi.array().items(
-        Joi.object({
-            rideId: Joi.string().optional(),
-            customer: Joi.object({
-                name: Joi.string().optional(),
-                customerId: Joi.string().optional()
-            }).optional(),
-            pickupLocation: Joi.object({
-                latitude: Joi.number().optional(),
-                longitude: Joi.number().optional()
-            }).optional(),
-            dropOffLocation: Joi.object({
-                latitude: Joi.number().optional(),
-                longitude: Joi.number().optional()
-            }).optional(),
-            fare: Joi.object({
-                amount: Joi.number().optional(),
-                currency: Joi.string().optional(),
-                paymentMethod: Joi.string().optional()
-            }).optional(),
-            date: Joi.date().optional()
-        })
-    ).optional(),
-    ratings: Joi.object({
-        average: Joi.number().optional(),
-        totalRides: Joi.number().optional()
-    }).optional(),
-    isAvailable: Joi.boolean().optional()
+    ...defaultUserSchema,
+    vehicle: Joi.string().required(),
+    city: Joi.string().trim().required(),
+    driverLicense: Joi.string().trim().required(),
+    nationalId: Joi.string().trim().required(),
 };
 
 const createDriverSchema = Joi.object({
@@ -123,28 +40,17 @@ const restaurantSchema = {
     isPhoneVerified: Joi.boolean().optional(),
     profilePicture: Joi.string().trim().optional(),
     address: Joi.object({
-        street: Joi.string().optional(),
-        city: Joi.string().optional(),
-        state: Joi.string().optional(),
-        zipCode: Joi.string().optional(),
-        country: Joi.string().optional()
+        street: Joi.string().required(),
+        city: Joi.string().required(),
+        state: Joi.string().required(),
+        zipCode: Joi.string().required(),
+        country: Joi.string().required()
     }).optional(),
     location: Joi.object({
-        type: Joi.string().valid('Point').required(),
-        coordinates: Joi.array().items(Joi.number()).length(2).required() // [longitude, latitude]
+        latitude: Joi.number().required(),
+        longitude: Joi.number().required()
     }).required(),
-    menu: Joi.array().items(
-        Joi.object({
-            name: Joi.string().required(),
-            description: Joi.string().optional(),
-            price: Joi.number().required(),
-            image: Joi.string().optional(),
-            ingredients: Joi.array().items(Joi.string()).optional(),
-            dietaryRestrictions: Joi.array().items(Joi.string()).optional(),
-            category: Joi.string().optional(),
-            isAvailable: Joi.boolean().optional()
-        })
-    ).optional(),
+    paymentMethods: Joi.array().items(Joi.string()).optional(),
     ratings: Joi.object({
         average: Joi.number().optional(),
         count: Joi.number().optional()
@@ -158,12 +64,7 @@ const createRestaurantSchema = Joi.object({
 const updateRestaurantSchema = Joi.object(restaurantSchema).unknown(false);
 
 const adminSchema = {
-    name: Joi.string().trim().required(),
-    email: Joi.string().trim().lowercase().email().optional(),
-    phoneNumber: Joi.string().trim().pattern(/^\+?[1-9]\d{1,14}$/).optional(),
-    isEmailVerified: Joi.boolean().optional(),
-    isPhoneVerified: Joi.boolean().optional(),
-    profilePicture: Joi.string().trim().optional(),
+    ...defaultUserSchema,
     role: Joi.string().valid(...ADMIN_TYPES).required(),
     permissions: Joi.array().items(Joi.string()).optional(),
 };
