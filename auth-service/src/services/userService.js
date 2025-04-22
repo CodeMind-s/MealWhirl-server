@@ -5,16 +5,13 @@ const logger = require('../utils/logger');
 const NotFoundException = require('../exceptions/NotFoundException');
 const ConflictException = require('../exceptions/ConflictException');
 const BadRequestException = require('../exceptions/BadRequestException');
-const Driver = require('../models/driverModel');
-const Restaurant = require('../models/restaurantModel');
-const Admin = require('../models/adminModel');
 const { getUserRole } = require('../utils/contextUtils');
 const ForbiddenException = require('../exceptions/ForbiddenException');
 const { getModelByCategory } = require('../utils/userUtils');
+const userConnector = require('../connectors/userConnector');
 
 const getUserByIdentifier = async (identifier, category) => {
-
-    return User.findOne({ identifier, ...(category ? { category } : {}) });
+    return userConnector.getUserByIdentifier({identifier, category});
 };
 
 const createUserByCategory = async (userData) => {

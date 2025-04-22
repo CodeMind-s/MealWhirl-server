@@ -11,6 +11,7 @@ const categoryModelMap = {
     [USER_CATEGORIES.DRIVER]: driverModel,
     [USER_CATEGORIES.RESTAURANT]: restaurantModel,
     [USER_CATEGORIES.ADMIN]: adminModel,
+    [USER_CATEGORIES.SUPER_ADMIN]: adminModel,
 };
 const getOwner = async (inputParameters) => {
     const { id } = inputParameters;
