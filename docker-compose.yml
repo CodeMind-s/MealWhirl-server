@@ -110,7 +110,7 @@ services:
   #   networks:
   #     - mealwhirl-network
 
-#item-service :5004, payment-service:5006, 
+#item-service :5004, payment-service:5006, cart:5007, delivery:5008, notification:5009
 networks:
   mealwhirl-network:
     name: mealwhirl-network
