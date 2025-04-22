@@ -5,7 +5,7 @@ const logger = require("./utils/logger");
 const { initKafkaProducer, initKafkaConsumer } = require("./services/kafkaService");
 
 const app = express();
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 5005;
 
 // Middleware
 app.use(express.json());
