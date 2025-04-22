@@ -9,7 +9,7 @@ const {
 const UnauthorizedException = require('../exceptions/UnauthorizedException');
 
 const unsecuredEndpoints = {
-    [`${BASE_URL}/health`]: {method: 'GET'}
+    ['/v1/health']: { method: "GET" },
 };
 
 const isUnsecuredEndpoint = (originalUrl, method) => (

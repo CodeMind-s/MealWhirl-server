@@ -57,6 +57,7 @@ const DriverSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
     nationalId: {
       type: String,
@@ -66,6 +67,7 @@ const DriverSchema = new mongoose.Schema(
     vehicle: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Vehicle",
+        required: true,
     },
     createdBy: {
         type: String,
@@ -81,6 +83,20 @@ const DriverSchema = new mongoose.Schema(
     validateBeforeSave: true,
   }
 );
+
+DriverSchema.pre("save", async function (next) {
+  try {
+    if (this.vehicle) {
+      const vehicleExists = await mongoose.model("Vehicle").exists({ _id: this.vehicle });
+      if (!vehicleExists) {
+        return next(new Error("The referenced `vehicle` does not exist."));
+      }
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 DriverSchema.pre("save", async function (next) {
   try {

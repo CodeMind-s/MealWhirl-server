@@ -101,6 +101,8 @@ const createUserByCategory = async (userData) => {
 
     const createdUser = await userModelData.save();
 
+    console.log("==============================================");
+
     await User.findOneAndUpdate(
       { identifier },
       {
@@ -140,9 +142,10 @@ const getAllUsersByCategory = async (category) => {
   }
 };
 
-const getUserDataByIdentifier = async (category, identifier) => {
+const getUserDataByIdentifierAndCategory = async (category, identifier) => {
   try {
-    const filterCategory = category === USER_CATEGORIES.ADMIN ? null : category;
+    const isAdmin = category === USER_CATEGORIES.ADMIN;
+    const filterCategory = isAdmin ? null : category;
 
     const user = await getUserByIdentifier(identifier, filterCategory);
 
@@ -155,7 +158,8 @@ const getUserDataByIdentifier = async (category, identifier) => {
       throw new ConflictException("User not active");
     }
 
-    const userObject = getModelByCategory(category);
+    const categoryToUse = isAdmin ? user.category : category;
+    const userObject = getModelByCategory(categoryToUse);
 
     const userData = await userObject.findOne({ identifier });
     return {
@@ -337,12 +341,47 @@ const deleteAccountByIdentifier = async (userData, status) => {
   }
 };
 
+const getUserDataByIdentifier = async (identifier) => {
+  try {
+    const user = await getUserByIdentifier(identifier);
+
+    if (!user) {
+      logger.error("User not found");
+      return null;
+    }
+    let userData = null;
+    if (user.accountStatus === USER_ACCOUNT_STATUS.ACTIVE) {
+      const categoryToUse =
+        user.category === USER_CATEGORIES.SUPER_ADMIN
+          ? USER_CATEGORIES.ADMIN
+          : user.category;
+      const userObject = getModelByCategory(categoryToUse);
+
+      const result = await userObject.findOne({ identifier });
+      if (!result) {
+        logger.error("User data not found");
+        throw new NotFoundException("User data not found");
+      }
+      userData = result._doc;
+    }
+
+    return {
+      ...(userData ? { accountData: userData } : {}),
+      ...user._doc,
+    };
+  } catch (error) {
+    logger.error("Error fetching user:", error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   createUserByCategory,
   getUserByIdentifier,
   getAllUsersByCategory,
-  getUserDataByIdentifier,
+  getUserDataByIdentifierAndCategory,
   updateUserByCategory,
   updateUserAccountStatusByIdentifier,
   deleteAccountByIdentifier,
+  getUserDataByIdentifier,
 };

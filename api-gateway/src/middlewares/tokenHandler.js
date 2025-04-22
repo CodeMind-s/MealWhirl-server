@@ -9,9 +9,10 @@ const {
 const UnauthorizedException = require("../exceptions/UnauthorizedException");
 
 const unsecuredEndpoints = {
-  [`${BASE_URL}/auth/login`]: { method: "POST" },
-  [`${BASE_URL}/auth/register`]: { method: "POST" },
-  [`${BASE_URL}/health`]: { method: "GET" },
+  ['/auth/v1/health']: { method: "GET" },
+  ['/users/v1/health']: { method: "GET" },
+  ['/auth/v1/login']: { method: "POST" },
+  ['/auth/v1/register']: { method: "POST" },
 };
 
 const isUnsecuredEndpoint = (originalUrl, method) =>

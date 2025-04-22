@@ -16,9 +16,9 @@ const getAllUsersByCategory = async (req, res, next) => {
     .catch((err) => next(appendExceptionStack(err)));
 }
 
-const getUserByIdentifier = async (req, res, next) => {
+const getUserByIdentifierAndCategory = async (req, res, next) => {
   const { category, id: identifier } = req.params;
-  userService.getUserDataByIdentifier(category, identifier)
+  userService.getUserDataByIdentifierAndCategory(category, identifier)
     .then((value) => res.status(200).json(createSuccessResponse(value)))
     .catch((err) => next(appendExceptionStack(err)));
 }
@@ -45,11 +45,19 @@ const deleteAccountByIdentifier = async (req, res, next) => {
     .catch((err) => next(appendExceptionStack(err)));
 }
 
+const getUserDataByIdentifier = async (req, res, next) => {
+  const { identifier } = req.body;
+  userService.getUserDataByIdentifier(identifier)
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
 module.exports = {
   createUserByCategory,
   getAllUsersByCategory,
-  getUserByIdentifier,
+  getUserByIdentifierAndCategory,
   updateUserByCategory,
   updateUserAccountStatusByIdentifier,
-  deleteAccountByIdentifier
+  deleteAccountByIdentifier,
+  getUserDataByIdentifier
 }

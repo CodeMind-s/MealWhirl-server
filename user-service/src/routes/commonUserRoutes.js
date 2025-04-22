@@ -7,6 +7,7 @@ const {
   validateGetUserByIdentifier,
   validateDeleteUserAccountByIdentifier,
   validateAccountStatusUpdateUserByIdentifier,
+  validateGetUserByIdentifierAndCategory
 } = require("../validators/commonUserValidators");
 const authorization = require("../middlewares/authorization");
 const { PERMISSION_TYPES } = require("../constants/permissionConstants");
@@ -25,8 +26,14 @@ router.get(
 router.get(
   "/:category/:id",
   authorization([SUPER_ADMIN, ADMINISTRATOR, OWNER], getOwner),
+  validateGetUserByIdentifierAndCategory,
+  userController.getUserByIdentifierAndCategory
+);
+router.post(
+  "/get-by-id",
+  authorization([ANY]),
   validateGetUserByIdentifier,
-  userController.getUserByIdentifier
+  userController.getUserDataByIdentifier
 );
 router.post(
   "/:category",
