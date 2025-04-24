@@ -7,6 +7,8 @@ const APP_PORT =
 const APP_HOST = process.env.APP_HOST || '0.0.0.0';
 const USER_SERVICE_PORT = process.env.USER_SERVICE_PORT || '5003';
 const AUTH_SERVICE_PORT = process.env.AUTH_SERVICE_PORT || '5002';
+const USER_SERVICE_HOST = process.env.USER_SERVICE_HOST || 'user-service';
+const AUTH_SERVICE_HOST = process.env.AUTH_SERVICE_HOST || 'auth-service';
 const ENV = process.env.ENV || 'test';
 const TOKEN_SECRET = ENV === 'test'?  process.env.TEST_TOKEN_SECRET?.replace(/\\n/g, '\n') || '' : process.env.TOKEN_SECRET?.replace(/\\n/g, '\n') || ''; // move this to secure place
 const TOKEN_EXPIRATION = process.env.TOKEN_EXPIRATION || '1h';
@@ -53,4 +55,6 @@ module.exports = {
     ISSUER,
     USER_SERVICE_PORT,
     AUTH_SERVICE_PORT,
+    USER_SERVICE_HOST,
+    AUTH_SERVICE_HOST,
 };
