@@ -78,7 +78,10 @@ const createRestaurantSchema = Joi.object({
   .concat(Joi.object(defaultUserSchema))
   .unknown(false);
 
-const updateRestaurantSchema = Joi.object({...defaultUserSchema, restaurant: Joi.object(mandatoryRestaurantSchema).optional()}).unknown(false);
+const updateRestaurantSchema = Joi.object({
+  ...defaultUserSchema,
+  restaurant: Joi.object(mandatoryRestaurantSchema).optional(),
+}).unknown(false);
 
 const adminSchema = {
   ...defaultUserSchema,
@@ -115,12 +118,19 @@ const userByIdentifierSchema = Joi.object({
       Joi.string().pattern(/^\+?[1-9]\d{1,14}$/)
     )
     .required(),
-  category: Joi.string()
-    .valid(...Object.values(USER_CATEGORIES))
-    .optional(),
 }).unknown(false);
 
-const validateCreateUser = (req, res, next) => {
+
+const createUserByIdentifierSchema = Joi.object({
+  identifier: Joi.string().required(), 
+  type: Joi.string().valid(...Object.values(USER_IDENTIFIER_TYPES)).required(),
+  verified: Joi.boolean().valid(true).required(),
+  password: Joi.string().required(),
+  accountStatus: Joi.string().valid(USER_ACCOUNT_STATUS.CREATING).required(),
+  category: Joi.string().valid(USER_CATEGORIES.REGISTERD).required(),
+});
+
+const validateCreateUserByCategory = (req, res, next) => {
   const payload = req.body;
   const { category } = req.params;
   if (!Object.values(USER_CATEGORIES).includes(category)) {
@@ -154,7 +164,7 @@ const validateCreateUser = (req, res, next) => {
   return next();
 };
 
-const validateUpdateUser = (req, res, next) => {
+const validateUpdateUserByCategoryAndIdentifier = (req, res, next) => {
   const payload = req.body;
   const { category } = req.params;
 
@@ -200,7 +210,7 @@ const validateUpdateUser = (req, res, next) => {
   return next();
 };
 
-const validateGetAllUsers = (req, res, next) => {
+const validateGetAllUsersByCategory = (req, res, next) => {
   const { category } = req.params;
   if (!Object.values(USER_CATEGORIES).includes(category)) {
     return next(new BadRequestException("Invalid user category"));
@@ -222,7 +232,7 @@ const validateGetUserByIdentifierAndCategory = (req, res, next) => {
   return next();
 };
 
-const validateDeleteUserAccountByIdentifier = (req, res, next) => {
+const validateDeleteUserAccountByCategoryAndIdentifier = (req, res, next) => {
   const { error } = userByIdAndCategorySchema.validate(req.params, {
     abortEarly: false,
   });
@@ -236,7 +246,7 @@ const validateDeleteUserAccountByIdentifier = (req, res, next) => {
   return next();
 };
 
-const validateAccountStatusUpdateUserByIdentifier = (req, res, next) => {
+const validateAccountStatusUpdatByCategoryAndIdentifier = (req, res, next) => {
   const { error } = userByIdAndCategorySchema.validate(req.params, {
     abortEarly: false,
   });
@@ -270,12 +280,25 @@ const validateGetUserByIdentifier = (req, res, next) => {
   return next();
 };
 
+const validateCreateUpdateUserByIdentifier = (req, res, next) => {
+  const { error } = createUserByIdentifierSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return next(
+      new BadRequestException(
+        error.details.map((err) => err.message).join(", ")
+      )
+    );
+  }
+  return next();
+};
+
 module.exports = {
-  validateCreateUser,
-  validateGetAllUsers,
+  validateCreateUserByCategory,
+  validateGetAllUsersByCategory,
   validateGetUserByIdentifierAndCategory,
-  validateUpdateUser,
-  validateAccountStatusUpdateUserByIdentifier,
-  validateDeleteUserAccountByIdentifier,
-  validateGetUserByIdentifier
+  validateUpdateUserByCategoryAndIdentifier,
+  validateAccountStatusUpdatByCategoryAndIdentifier,
+  validateDeleteUserAccountByCategoryAndIdentifier,
+  validateGetUserByIdentifier,
+  validateCreateUpdateUserByIdentifier
 };

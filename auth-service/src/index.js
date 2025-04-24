@@ -5,7 +5,6 @@ const helmet = require("helmet");
 const compression = require("compression");
 const httpContext = require("express-http-context");
 require("dotenv").config();
-const connectDB = require("./config/db");
 const errorHandler = require("./middlewares/errorHandler");
 const tokenHandler = require("./middlewares/tokenHandler");
 const $404Handler = require('./middlewares/404Handler');
@@ -24,9 +23,6 @@ const {
 
 const startServer = async () => {
     try {
-        await connectDB();
-        logger.info("MongoDB connected successfully");
-
         await initKafkaProducer();
         logger.info("Kafka Producer initialized");
         
@@ -41,6 +37,7 @@ const startServer = async () => {
         app.use(helmet());
         app.use(compression());
         app.use(httpContext.middleware);
+        app.use(express.json({ limit: "10mb" }));
 
         app.use(
             morgan(IMMEDIATE_LOG_FORMAT, {
