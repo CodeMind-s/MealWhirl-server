@@ -23,24 +23,24 @@ const getUserByIdentifierAndCategory = async (req, res, next) => {
     .catch((err) => next(appendExceptionStack(err)));
 }
 
-const updateUserByCategory = async (req, res, next) => {
+const updateUserByCategoryAndIdentifier = async (req, res, next) => {
   const { category, id: identifier } = req.params;
-  userService.updateUserByCategory({ ...req.body, category, identifier })
+  userService.updateUserByCategoryAndIdentifier({ ...req.body, category, identifier })
     .then((value) => res.status(200).json(createSuccessResponse(value)))
     .catch((err) => next(appendExceptionStack(err)));
 }
 
-const updateUserAccountStatusByIdentifier = async (req, res, next) => {
+const updateUserAccountStatusByCategoryAndIdentifier = async (req, res, next) => {
   const { category, id: identifier } = req.params;
   const { status } = req.body;
-  userService.updateUserAccountStatusByIdentifier({ category, identifier }, status)
+  userService.updateUserAccountStatusByCategoryAndIdentifier({ category, identifier }, status)
     .then((value) => res.status(200).json(createSuccessResponse(value)))
     .catch((err) => next(appendExceptionStack(err)));
 }
 
-const deleteAccountByIdentifier = async (req, res, next) => {
+const deleteAccountByCategoryAndIdentifier = async (req, res, next) => {
   const { category, id: identifier } = req.params;
-  userService.deleteAccountByIdentifier({ category, identifier })
+  userService.deleteAccountByCategoryAndIdentifier({ category, identifier })
     .then((value) => res.status(200).json(createSuccessResponse(value)))
     .catch((err) => next(appendExceptionStack(err)));
 }
@@ -52,12 +52,26 @@ const getUserDataByIdentifier = async (req, res, next) => {
     .catch((err) => next(appendExceptionStack(err)));
 }
 
+const updateUserByIdentifier = async (req, res, next) => {
+  userService.updateUserByIdentifier(req.body)
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
+const createUserByIdentifier = async (req, res, next) => {
+  userService.createUserByIdentifier(req.body)
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+}
+
 module.exports = {
   createUserByCategory,
   getAllUsersByCategory,
   getUserByIdentifierAndCategory,
-  updateUserByCategory,
-  updateUserAccountStatusByIdentifier,
-  deleteAccountByIdentifier,
-  getUserDataByIdentifier
+  updateUserByCategoryAndIdentifier,
+  updateUserAccountStatusByCategoryAndIdentifier,
+  deleteAccountByCategoryAndIdentifier,
+  getUserDataByIdentifier,
+  updateUserByIdentifier,
+  createUserByIdentifier
 }

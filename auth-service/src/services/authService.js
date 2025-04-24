@@ -7,6 +7,7 @@ const {
 } = require("../constants/userConstants");
 const ForbiddenException = require("../exceptions/ForbiddenException");
 const { generateToken } = require("../utils/userUtils");
+const userConnector = require("../connectors/userConnector");
 
 const login = async (payload) => {
   try {
@@ -55,23 +56,20 @@ const register = async (payload) => {
     const user = await userService.getUserByIdentifier(identifier);
     const encryptedPassword = await User.encryptPassword(password);
     if (user && user.accountStatus === USER_ACCOUNT_STATUS.CREATING) {
-      const updatedUser = await User.findOneAndUpdate(
-        { identifier },
-        {
-          type,
-          verified: true,
-          password: encryptedPassword,
-          accountStatus: USER_ACCOUNT_STATUS.CREATING,
-          category: USER_CATEGORIES.REGISTERD,
-        },
-        { new: true }
-      );
+      const updatedUser = await userService.updateUserByIdentifier({
+        identifier,
+        type,
+        verified: true,
+        password: encryptedPassword,
+        accountStatus: USER_ACCOUNT_STATUS.CREATING,
+        category: USER_CATEGORIES.REGISTERD,
+      });
       return { [type]: updatedUser.identifier, type };
     } else if (user) {
       throw new ForbiddenException("User already exists", 403);
     }
 
-    const newUser = new User({
+    await userConnector.createUserByIdentifier({
       identifier,
       type,
       verified: true,
@@ -79,7 +77,6 @@ const register = async (payload) => {
       accountStatus: USER_ACCOUNT_STATUS.CREATING,
       category: USER_CATEGORIES.REGISTERD,
     });
-    await newUser.save();
 
     return { [type]: identifier, type };
   } catch (error) {
@@ -90,5 +87,5 @@ const register = async (payload) => {
 
 module.exports = {
   login,
-  register
+  register,
 };
