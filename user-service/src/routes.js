@@ -9,12 +9,12 @@ const restaurantRoutes = require('./routes/restaurantRoutes')
  */
 const router = Router();
 
+router.use('/health', (req, res) => {
+    res.status(200).send("User Service is healthy");
+});
 router.use('/driver', driverRoutes);
 router.use('/customer', customerRoutes);
 router.use('/restaurant', restaurantRoutes);
 router.use('/', commonUserRoutes);
-router.use('/health', (req, res) => {
-    res.status(200).send("User Service is healthy");
-});
 
 module.exports = router

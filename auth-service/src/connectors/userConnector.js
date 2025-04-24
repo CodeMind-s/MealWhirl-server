@@ -1,9 +1,9 @@
-const { APP_HOST, USER_SERVICE_PORT } = require("../constants/configConstants.js");
+const { USER_SERVICE_PORT, USER_SERVICE_HOST } = require("../constants/configConstants.js");
 const RestClientException = require("../exceptions/RestClientException.js");
 const logger = require("../utils/logger.js");
 const CommonALB = require("./commonALB.js");
 
-const USER_SERVICE = [`http://${APP_HOST}:${USER_SERVICE_PORT}`];
+const USER_SERVICE = [`http://${USER_SERVICE_HOST}:${USER_SERVICE_PORT}`];
 
 class UserConnector {
   constructor(serviceUrls) {

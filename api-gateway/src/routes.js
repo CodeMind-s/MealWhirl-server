@@ -2,7 +2,6 @@ const { Router } = require("express");
 const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
-const { createProxyMiddleware } = require("http-proxy-middleware");
 
 /**
  * Contains all API routes for the application.
