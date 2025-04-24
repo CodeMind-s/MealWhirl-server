@@ -20,6 +20,7 @@ const {
     KEEP_ALIVE_TIME_OUT,
     HEADERS_TIME_OUT, IMMEDIATE_LOG_FORMAT, LOG_FORMAT
 } = require("./constants/configConstants");
+const { initKafkaProducer, initKafkaConsumer } = require("../../api-gateway/src/services/kafkaService");
 
 const startServer = async () => {
     try {
