@@ -47,7 +47,7 @@ const createDriverSchema = Joi.object({
 
 const updateDriverSchema = Joi.object(driverSchema).unknown(false);
 
-const mandotoryRestaurantSchema = {
+const mandatoryRestaurantSchema = {
   address: Joi.object({
     street: Joi.string().required(),
     city: Joi.string().required(),
@@ -73,12 +73,12 @@ const mandotoryRestaurantSchema = {
 
 const createRestaurantSchema = Joi.object({
   identifier: Joi.string().required(),
-  restaurant: Joi.object(mandotoryRestaurantSchema).required(),
+  restaurant: Joi.object(mandatoryRestaurantSchema).required(),
 })
   .concat(Joi.object(defaultUserSchema))
   .unknown(false);
 
-const updateRestaurantSchema = Joi.object({...defaultUserSchema, restaurant: Joi.object(mandotoryRestaurantSchema).optional()}).unknown(false);
+const updateRestaurantSchema = Joi.object({...defaultUserSchema, restaurant: Joi.object(mandatoryRestaurantSchema).optional()}).unknown(false);
 
 const adminSchema = {
   ...defaultUserSchema,
