@@ -37,6 +37,7 @@ const startServer = async () => {
         app.use(helmet());
         app.use(compression());
         app.use(httpContext.middleware);
+        app.use(express.json({ limit: "10mb" }));
 
         app.use(
             morgan(IMMEDIATE_LOG_FORMAT, {
