@@ -1,12 +1,9 @@
-const { TENANT } = require("../constants/configConstants.js");
-const { USER_CATEGORIES } = require("../constants/userConstants.js");
+const { USER_SERVICE_PORT, USER_SERVICE_HOST } = require("../constants/configConstants.js");
 const RestClientException = require("../exceptions/RestClientException.js");
-const { getAuthorizationToken } = require("../utils/contextUtils.js");
 const logger = require("../utils/logger.js");
-const { generateToken } = require("../utils/userUtils.js");
 const CommonALB = require("./commonALB.js");
 
-const USER_SERVICE = ["http://localhost:5001"];
+const USER_SERVICE = [`http://${USER_SERVICE_HOST}:${USER_SERVICE_PORT}`];
 
 class UserConnector {
   constructor(serviceUrls) {
