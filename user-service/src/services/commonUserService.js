@@ -56,9 +56,10 @@ const createUserByCategory = async (userData) => {
 
     const categoryToUse = isAdmin ? userData.role : category;
 
-    const { email, phoneNumber, ...rest } = userData;
+    const { email, phoneNumber, restaurant, ...rest } = userData;
     const userModelData = new userObject({
       ...rest,
+      ...(restaurant ? restaurant : {}),
       [user.type]: {
         value: identifier,
         isVerified: true,
@@ -100,8 +101,6 @@ const createUserByCategory = async (userData) => {
     }
 
     const createdUser = await userModelData.save();
-
-    console.log("==============================================");
 
     await User.findOneAndUpdate(
       { identifier },
@@ -211,12 +210,13 @@ const updateUserByCategory = async (userData) => {
 
     const userObject = getModelByCategory(category);
 
-    const { email, phoneNumber, ...rest } = userData;
+    const { email, phoneNumber, restaurant, ...rest } = userData;
 
     const updatedUser = await userObject.findOneAndUpdate(
       { identifier },
       {
         ...rest,
+        ...(restaurant ? restaurant : {}),
         ...(email
           ? {
               email: {

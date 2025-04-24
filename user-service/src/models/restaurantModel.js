@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
-const { USER_ACCOUNT_STATUS } = require("../constants/userConstants");
+const {
+  USER_ACCOUNT_STATUS,
+  USER_IDENTIFIER_TYPES,
+} = require("../constants/userConstants");
 const User = require("./userModel");
 
 /**
@@ -20,23 +23,38 @@ const RestaurantSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    email: {
-      type: String,
-      trim: true,
-      lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
+    [USER_IDENTIFIER_TYPES.EMAIL]: {
+      value: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
+      },
+      isVerified: {
+        type: Boolean,
+        default: false,
+      },
     },
-    phoneNumber: {
-      type: String,
-      trim: true,
-      match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"],
+    [USER_IDENTIFIER_TYPES.PHONE]: {
+      value: {
+        type: String,
+        trim: true,
+        match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"],
+      },
+      isVerified: {
+        type: Boolean,
+        default: false,
+      },
     },
     address: {
-      street: { type: String, required: true },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      zipCode: { type: String, required: true },
-      country: { type: String, required: true },
+      type: {
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zipCode: { type: String, required: true },
+        country: { type: String, required: true },
+      },
+      required: true, // Make the entire address object mandatory
     },
     location: {
       type: {
@@ -50,6 +68,28 @@ const RestaurantSchema = new mongoose.Schema(
         },
       },
       required: true, // Make the entire location object mandatory
+    },
+    registrationNumber: {
+      type: String,
+      required: true,
+    },
+    owner: {
+      type: {
+        name: { type: String, required: true },
+        email: {
+          type: String,
+          trim: true,
+          lowercase: true,
+          match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
+        },
+        phone: {
+          type: String,
+          trim: true,
+          match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"],
+        },
+        nationalId: { type: String, required: true },
+      },
+      required: true, // Make the entire owner object mandatory
     },
     menu: [
       {

@@ -6,7 +6,6 @@ const {
   USER_IDENTIFIER_TYPES,
 } = require("../constants/userConstants");
 const BadRequestException = require("../exceptions/BadRequestException");
-const { VEHICLE_TYPES } = require("../constants/commonConstants");
 
 const defaultUserSchema = {
   name: Joi.string().trim().optional(),
@@ -48,41 +47,38 @@ const createDriverSchema = Joi.object({
 
 const updateDriverSchema = Joi.object(driverSchema).unknown(false);
 
-const restaurantSchema = {
-  name: Joi.string().trim().required(),
-  email: Joi.string().trim().lowercase().email().optional(),
-  phoneNumber: Joi.string()
-    .trim()
-    .pattern(/^\+?[1-9]\d{1,14}$/)
-    .optional(),
-  isEmailVerified: Joi.boolean().optional(),
-  isPhoneVerified: Joi.boolean().optional(),
-  profilePicture: Joi.string().trim().optional(),
+const mandotoryRestaurantSchema = {
   address: Joi.object({
     street: Joi.string().required(),
     city: Joi.string().required(),
     state: Joi.string().required(),
     zipCode: Joi.string().required(),
     country: Joi.string().required(),
-  }).optional(),
+  }).required(),
   location: Joi.object({
     latitude: Joi.number().required(),
     longitude: Joi.number().required(),
   }).required(),
-  paymentMethods: Joi.array().items(Joi.string()).optional(),
-  ratings: Joi.object({
-    average: Joi.number().optional(),
-    count: Joi.number().optional(),
-  }).optional(),
+  registrationNumber: Joi.string().required(),
+  owner: Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().trim().lowercase().email().required(),
+    phone: Joi.string()
+      .trim()
+      .pattern(/^\+?[1-9]\d{1,14}$/)
+      .required(),
+    nationalId: Joi.string().required(),
+  }).required(),
 };
 
 const createRestaurantSchema = Joi.object({
   identifier: Joi.string().required(),
+  restaurant: Joi.object(mandotoryRestaurantSchema).required(),
 })
-  .concat(Joi.object(restaurantSchema))
+  .concat(Joi.object(defaultUserSchema))
   .unknown(false);
 
-const updateRestaurantSchema = Joi.object(restaurantSchema).unknown(false);
+const updateRestaurantSchema = Joi.object({...defaultUserSchema, restaurant: Joi.object(mandotoryRestaurantSchema).optional()}).unknown(false);
 
 const adminSchema = {
   ...defaultUserSchema,
