@@ -40,6 +40,7 @@ const startServer = async () => {
         app.use(httpContext.middleware);
         app.use(jsonParse);
 
+
         app.use(
             morgan(IMMEDIATE_LOG_FORMAT, {
                 immediate: true,

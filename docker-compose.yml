@@ -99,6 +99,20 @@ services:
     networks:
       - mealwhirl-network
 
+  # paymeny-service:
+  #   build: ./paymeny-service
+  #   container_name: paymeny-service
+  #   ports:
+  #     - "5006:5006"
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     - MONGO_URI=mongodb+srv://bhashanasirimanna:8xJtENwmvz4dKlOK@paymentservice.ddhaxd1.mongodb.net/?retryWrites=true&w=majority&appName=PaymentService
+  #     - PORT=5006
+  #     - KAFKA_BROKER=kafka:9092
+  #   networks:
+  #     - mealwhirl-network
+
   nginx:
     image: nginx:alpine
     container_name: nginx
@@ -113,7 +127,7 @@ services:
     networks:
       - mealwhirl-network
 
-#item-service :5004, payment-service:5006, cart:5007, delivery:5008, notification:5009
+#item-service :5004, cart:5007, delivery:5008, notification:5009
 networks:
   mealwhirl-network:
     name: mealwhirl-network
