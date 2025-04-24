@@ -12,7 +12,7 @@ const $404Handler = require('./middlewares/404Handler');
 const errorLogger = require("./middlewares/errorLogger");
 const logger = require("./utils/logger");
 const { logStream } = require("./utils/logger");
-// const {initKafkaProducer, initKafkaConsumer} = require("./services/kafkaService");
+const {initKafkaProducer, initKafkaConsumer} = require("./services/kafkaService");
 const router = require("./routes");
 const {
     BASE_URL,
@@ -27,11 +27,11 @@ const startServer = async () => {
         await connectDB();
         logger.info("MongoDB connected successfully");
 
-        // await initKafkaProducer();
-        // logger.info("Kafka Producer initialized");
+        await initKafkaProducer();
+        logger.info("Kafka Producer initialized");
         
-        // await initKafkaConsumer();
-        // logger.info("Kafka Consumer initialized");
+        await initKafkaConsumer();
+        logger.info("Kafka Consumer initialized");
 
         const app = express();
         app.set("port", APP_PORT);
@@ -41,7 +41,6 @@ const startServer = async () => {
         app.use(helmet());
         app.use(compression());
         app.use(httpContext.middleware);
-        app.use(express.json());
 
         app.use(
             morgan(IMMEDIATE_LOG_FORMAT, {

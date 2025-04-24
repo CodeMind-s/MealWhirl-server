@@ -20,6 +20,7 @@ const {
     KEEP_ALIVE_TIME_OUT,
     HEADERS_TIME_OUT, IMMEDIATE_LOG_FORMAT, LOG_FORMAT
 } = require("./constants/configConstants");
+const { jsonParse } = require("./utils/commonUtils");
 
 const startServer = async () => {
     try {
@@ -37,6 +38,7 @@ const startServer = async () => {
         app.use(helmet());
         app.use(compression());
         app.use(httpContext.middleware);
+        app.use(jsonParse);
 
         app.use(
             morgan(IMMEDIATE_LOG_FORMAT, {

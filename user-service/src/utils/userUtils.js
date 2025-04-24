@@ -14,8 +14,8 @@ const categoryModelMap = {
     [USER_CATEGORIES.SUPER_ADMIN]: adminModel,
 };
 const getOwner = async (inputParameters) => {
-    const { id } = inputParameters;
-    return id;
+    const { id, identifier } = inputParameters;
+    return id ?? identifier;
 }
 
 const getModelByCategory = (category) => {

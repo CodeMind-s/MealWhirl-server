@@ -18,7 +18,6 @@ const addPayemntMethod = async (paymentData) => {
       throw new ForbiddenException("User not found");
     }
 
-    console.log(paymentData);
     const existingPaymentMethod = await Payment.findOne({
       customer: identifier,
       cardNumber: paymentData.cardNumber,
