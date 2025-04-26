@@ -1,12 +1,9 @@
-const { TENANT } = require("../constants/configConstants.js");
-const { USER_CATEGORIES } = require("../constants/userConstants.js");
+const { USER_SERVICE_PORT, USER_SERVICE_HOST } = require("../constants/configConstants.js");
 const RestClientException = require("../exceptions/RestClientException.js");
-const { getAuthorizationToken } = require("../utils/contextUtils.js");
 const logger = require("../utils/logger.js");
-const { generateToken } = require("../utils/userUtils.js");
 const CommonALB = require("./commonALB.js");
 
-const USER_SERVICE = ["http://localhost:5001"];
+const USER_SERVICE = [`http://${USER_SERVICE_HOST}:${USER_SERVICE_PORT}`];
 
 class UserConnector {
   constructor(serviceUrls) {
@@ -19,7 +16,7 @@ class UserConnector {
     try {
       const response = await this.alb.makeRequest(
         "POST",
-        `/V1/get-by-id`,
+        `/v1/get-by-id`,
         { identifier },
         headers
       );
@@ -33,60 +30,31 @@ class UserConnector {
     }
   }
 
-  async createUser(userData, headers = {}) {
+  async createUserByIdentifier(userData, headers = {}) {
     try {
       const response = await this.alb.makeRequest(
         "POST",
-        "/users",
+        "/v1/identifier",
         userData,
         headers
       );
       return response.data;
     } catch (error) {
-      throw new RestClientException(
-        "Failed to create user",
-        error.response?.status || 500,
-        "USER_CREATION_ERROR",
-        { originalError: error.message }
-      );
+      throw new RestClientException(`Failed to create user ${userData.identifier}`);
     }
   }
 
-  async updateUser(userId, userData, headers = {}) {
+  async updateUserByIdentifier(userData, headers = {}) {
     try {
       const response = await this.alb.makeRequest(
         "PUT",
-        `/users/${userId}`,
+        `/v1/identifier`,
         userData,
         headers
       );
-      return response.data;
+      return response.data.data;
     } catch (error) {
-      throw new RestClientException(
-        `Failed to update user with ID: ${userId}`,
-        error.response?.status || 500,
-        "USER_UPDATE_ERROR",
-        { originalError: error.message }
-      );
-    }
-  }
-
-  async deleteUser(userId, headers = {}) {
-    try {
-      const response = await this.alb.makeRequest(
-        "DELETE",
-        `/users/${userId}`,
-        null,
-        headers
-      );
-      return response.data;
-    } catch (error) {
-      throw new RestClientException(
-        `Failed to delete user with ID: ${userId}`,
-        error.response?.status || 500,
-        "USER_DELETION_ERROR",
-        { originalError: error.message }
-      );
+      throw new RestClientException(`Failed to update user ${userData.identifier}`);
     }
   }
 }

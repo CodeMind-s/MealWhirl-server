@@ -1,11 +1,13 @@
 /**
  * Application Constants
  */
-const BASE_URL = "/";
+const BASE_URL = "/v1";
 const APP_PORT =
     (process.env.NODE_ENV === 'test' ? process.env.TEST_APP_PORT : process.env.APP_PORT) || process.env.PORT || '3000';
 const APP_HOST = process.env.APP_HOST || '0.0.0.0';
+const USER_SERVICE_PORT = process.env.USER_SERVICE_PORT || '5003';
 const ENV = process.env.ENV || 'test';
+const USER_SERVICE_HOST = process.env.USER_SERVICE_HOST || 'user-service';
 const TOKEN_SECRET = ENV === 'test'?  process.env.TEST_TOKEN_SECRET?.replace(/\\n/g, '\n') || '' : process.env.TOKEN_SECRET?.replace(/\\n/g, '\n') || ''; // move this to secure place
 const TOKEN_EXPIRATION = process.env.TOKEN_EXPIRATION || '1h';
 const ALGORITHM = process.env.ALGORITHM || 'RS256';
@@ -48,5 +50,7 @@ module.exports = {
     TENANT,
     TOKEN_EXPIRATION,
     ALGORITHM,
-    ISSUER
+    ISSUER,
+    USER_SERVICE_PORT,
+    USER_SERVICE_HOST
 };
