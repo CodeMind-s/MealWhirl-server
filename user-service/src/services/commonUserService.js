@@ -56,9 +56,10 @@ const createUserByCategory = async (userData) => {
 
     const categoryToUse = isAdmin ? userData.role : category;
 
-    const { email, phoneNumber, ...rest } = userData;
+    const { email, phoneNumber, restaurant, ...rest } = userData;
     const userModelData = new userObject({
       ...rest,
+      ...(restaurant ? restaurant : {}),
       [user.type]: {
         value: identifier,
         isVerified: true,
@@ -100,8 +101,6 @@ const createUserByCategory = async (userData) => {
     }
 
     const createdUser = await userModelData.save();
-
-    console.log("==============================================");
 
     await User.findOneAndUpdate(
       { identifier },
@@ -174,7 +173,7 @@ const getUserDataByIdentifierAndCategory = async (category, identifier) => {
   }
 };
 
-const updateUserByCategory = async (userData) => {
+const updateUserByCategoryAndIdentifier = async (userData) => {
   try {
     const userId = getUserId();
     const { identifier, category } = userData;
@@ -211,12 +210,13 @@ const updateUserByCategory = async (userData) => {
 
     const userObject = getModelByCategory(category);
 
-    const { email, phoneNumber, ...rest } = userData;
+    const { email, phoneNumber, restaurant, ...rest } = userData;
 
     const updatedUser = await userObject.findOneAndUpdate(
       { identifier },
       {
         ...rest,
+        ...(restaurant ? restaurant : {}),
         ...(email
           ? {
               email: {
@@ -250,7 +250,7 @@ const updateUserByCategory = async (userData) => {
   }
 };
 
-const updateUserAccountStatusByIdentifier = async (userData, status) => {
+const updateUserAccountStatusByCategoryAndIdentifier = async (userData, status) => {
   try {
     if (!status) {
       logger.error("Status is required");
@@ -305,7 +305,7 @@ const updateUserAccountStatusByIdentifier = async (userData, status) => {
   }
 };
 
-const deleteAccountByIdentifier = async (userData, status) => {
+const deleteAccountByCategoryAndIdentifier = async (userData, status) => {
   try {
     const { identifier, category } = userData;
 
@@ -375,13 +375,80 @@ const getUserDataByIdentifier = async (identifier) => {
   }
 };
 
+const updateUserByIdentifier = async (userData) => {
+  try {
+    const userId = getUserId();
+    const { identifier } = userData;
+
+    const user = await getUserByIdentifier(identifier);
+
+    if (!user) {
+      logger.error("User not found");
+      throw new NotFoundException("User not found");
+    }
+
+    const tokenUser = getUserRole();
+    if (
+      tokenUser !== USER_CATEGORIES.SUPER_ADMIN &&
+      user.category === USER_CATEGORIES.SUPER_ADMIN
+    ) {
+      logger.error("Super admin cannot be updated");
+      throw new ForbiddenException("Super admin cannot be updated");
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { identifier },
+      {
+        ...userData,
+        updatedBy: userId,
+      },
+      { new: true }
+    );
+
+    return updatedUser;
+  } catch (error) {
+    logger.error("Error updating user:", error.message);
+    throw error;
+  }
+};
+
+const createUserByIdentifier = async (userData) => {
+  try {
+    const userId = getUserId();
+    const { identifier } = userData;
+
+    const user = await getUserByIdentifier(identifier);
+
+    if (user) {
+      logger.error("User already exists");
+      throw new ConflictException("User already exists");
+    }
+
+    const newUser = new User({
+      ...userData,
+      accountStatus: USER_ACCOUNT_STATUS.CREATING,
+      createdBy: userId,
+      updatedBy: userId,
+    });
+
+    await newUser.save();
+
+    return newUser;
+  } catch (error) {
+    logger.error("Error creating user:", error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   createUserByCategory,
   getUserByIdentifier,
   getAllUsersByCategory,
   getUserDataByIdentifierAndCategory,
-  updateUserByCategory,
-  updateUserAccountStatusByIdentifier,
-  deleteAccountByIdentifier,
+  updateUserByCategoryAndIdentifier,
+  updateUserAccountStatusByCategoryAndIdentifier,
+  deleteAccountByCategoryAndIdentifier,
   getUserDataByIdentifier,
+  updateUserByIdentifier,
+  createUserByIdentifier
 };

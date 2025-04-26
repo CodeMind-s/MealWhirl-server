@@ -6,7 +6,6 @@ const {
   USER_IDENTIFIER_TYPES,
 } = require("../constants/userConstants");
 const BadRequestException = require("../exceptions/BadRequestException");
-const { VEHICLE_TYPES } = require("../constants/commonConstants");
 
 const defaultUserSchema = {
   name: Joi.string().trim().optional(),
@@ -48,41 +47,41 @@ const createDriverSchema = Joi.object({
 
 const updateDriverSchema = Joi.object(driverSchema).unknown(false);
 
-const restaurantSchema = {
-  name: Joi.string().trim().required(),
-  email: Joi.string().trim().lowercase().email().optional(),
-  phoneNumber: Joi.string()
-    .trim()
-    .pattern(/^\+?[1-9]\d{1,14}$/)
-    .optional(),
-  isEmailVerified: Joi.boolean().optional(),
-  isPhoneVerified: Joi.boolean().optional(),
-  profilePicture: Joi.string().trim().optional(),
+const mandatoryRestaurantSchema = {
   address: Joi.object({
     street: Joi.string().required(),
     city: Joi.string().required(),
     state: Joi.string().required(),
     zipCode: Joi.string().required(),
     country: Joi.string().required(),
-  }).optional(),
+  }).required(),
   location: Joi.object({
     latitude: Joi.number().required(),
     longitude: Joi.number().required(),
   }).required(),
-  paymentMethods: Joi.array().items(Joi.string()).optional(),
-  ratings: Joi.object({
-    average: Joi.number().optional(),
-    count: Joi.number().optional(),
-  }).optional(),
+  registrationNumber: Joi.string().required(),
+  owner: Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().trim().lowercase().email().required(),
+    phone: Joi.string()
+      .trim()
+      .pattern(/^\+?[1-9]\d{1,14}$/)
+      .required(),
+    nationalId: Joi.string().required(),
+  }).required(),
 };
 
 const createRestaurantSchema = Joi.object({
   identifier: Joi.string().required(),
+  restaurant: Joi.object(mandatoryRestaurantSchema).required(),
 })
-  .concat(Joi.object(restaurantSchema))
+  .concat(Joi.object(defaultUserSchema))
   .unknown(false);
 
-const updateRestaurantSchema = Joi.object(restaurantSchema).unknown(false);
+const updateRestaurantSchema = Joi.object({
+  ...defaultUserSchema,
+  restaurant: Joi.object(mandatoryRestaurantSchema).optional(),
+}).unknown(false);
 
 const adminSchema = {
   ...defaultUserSchema,
@@ -119,12 +118,19 @@ const userByIdentifierSchema = Joi.object({
       Joi.string().pattern(/^\+?[1-9]\d{1,14}$/)
     )
     .required(),
-  category: Joi.string()
-    .valid(...Object.values(USER_CATEGORIES))
-    .optional(),
 }).unknown(false);
 
-const validateCreateUser = (req, res, next) => {
+
+const createUserByIdentifierSchema = Joi.object({
+  identifier: Joi.string().required(), 
+  type: Joi.string().valid(...Object.values(USER_IDENTIFIER_TYPES)).required(),
+  verified: Joi.boolean().valid(true).required(),
+  password: Joi.string().required(),
+  accountStatus: Joi.string().valid(USER_ACCOUNT_STATUS.CREATING).required(),
+  category: Joi.string().valid(USER_CATEGORIES.REGISTERD).required(),
+});
+
+const validateCreateUserByCategory = (req, res, next) => {
   const payload = req.body;
   const { category } = req.params;
   if (!Object.values(USER_CATEGORIES).includes(category)) {
@@ -158,7 +164,7 @@ const validateCreateUser = (req, res, next) => {
   return next();
 };
 
-const validateUpdateUser = (req, res, next) => {
+const validateUpdateUserByCategoryAndIdentifier = (req, res, next) => {
   const payload = req.body;
   const { category } = req.params;
 
@@ -204,7 +210,7 @@ const validateUpdateUser = (req, res, next) => {
   return next();
 };
 
-const validateGetAllUsers = (req, res, next) => {
+const validateGetAllUsersByCategory = (req, res, next) => {
   const { category } = req.params;
   if (!Object.values(USER_CATEGORIES).includes(category)) {
     return next(new BadRequestException("Invalid user category"));
@@ -226,7 +232,7 @@ const validateGetUserByIdentifierAndCategory = (req, res, next) => {
   return next();
 };
 
-const validateDeleteUserAccountByIdentifier = (req, res, next) => {
+const validateDeleteUserAccountByCategoryAndIdentifier = (req, res, next) => {
   const { error } = userByIdAndCategorySchema.validate(req.params, {
     abortEarly: false,
   });
@@ -240,7 +246,7 @@ const validateDeleteUserAccountByIdentifier = (req, res, next) => {
   return next();
 };
 
-const validateAccountStatusUpdateUserByIdentifier = (req, res, next) => {
+const validateAccountStatusUpdatByCategoryAndIdentifier = (req, res, next) => {
   const { error } = userByIdAndCategorySchema.validate(req.params, {
     abortEarly: false,
   });
@@ -274,12 +280,25 @@ const validateGetUserByIdentifier = (req, res, next) => {
   return next();
 };
 
+const validateCreateUpdateUserByIdentifier = (req, res, next) => {
+  const { error } = createUserByIdentifierSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return next(
+      new BadRequestException(
+        error.details.map((err) => err.message).join(", ")
+      )
+    );
+  }
+  return next();
+};
+
 module.exports = {
-  validateCreateUser,
-  validateGetAllUsers,
+  validateCreateUserByCategory,
+  validateGetAllUsersByCategory,
   validateGetUserByIdentifierAndCategory,
-  validateUpdateUser,
-  validateAccountStatusUpdateUserByIdentifier,
-  validateDeleteUserAccountByIdentifier,
-  validateGetUserByIdentifier
+  validateUpdateUserByCategoryAndIdentifier,
+  validateAccountStatusUpdatByCategoryAndIdentifier,
+  validateDeleteUserAccountByCategoryAndIdentifier,
+  validateGetUserByIdentifier,
+  validateCreateUpdateUserByIdentifier
 };
