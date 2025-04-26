@@ -3,6 +3,7 @@ const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 /**
@@ -14,6 +15,7 @@ router.use("/orders", orderRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/users", userRoutes);
 router.use("/auth", authRoutes);
+router.use("/notifications", notificationRoutes);
 router.use("/health", (req, res) => {
   res.status(200).send("API gateway is healthy");
 });
