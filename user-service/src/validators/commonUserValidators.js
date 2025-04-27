@@ -48,6 +48,7 @@ const createDriverSchema = Joi.object({
 const updateDriverSchema = Joi.object(driverSchema).unknown(false);
 
 const mandatoryRestaurantSchema = {
+  name: Joi.string().required(),
   address: Joi.object({
     street: Joi.string().required(),
     city: Joi.string().required(),
@@ -127,7 +128,7 @@ const createUserByIdentifierSchema = Joi.object({
   verified: Joi.boolean().valid(true).required(),
   password: Joi.string().required(),
   accountStatus: Joi.string().valid(USER_ACCOUNT_STATUS.CREATING).required(),
-  category: Joi.string().valid(USER_CATEGORIES.REGISTERD).required(),
+  category: Joi.string().valid(...Object.values(USER_CATEGORIES)).required(),
 });
 
 const validateCreateUserByCategory = (req, res, next) => {

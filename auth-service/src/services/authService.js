@@ -50,7 +50,7 @@ const login = async (payload) => {
  */
 const register = async (payload) => {
   try {
-    const { type, password } = payload;
+    const { type, password, category } = payload;
     const identifier = payload[type];
 
     const user = await userService.getUserByIdentifier(identifier);
@@ -62,9 +62,13 @@ const register = async (payload) => {
         verified: true,
         password: encryptedPassword,
         accountStatus: USER_ACCOUNT_STATUS.CREATING,
-        category: USER_CATEGORIES.REGISTERD,
+        category,
       });
-      return { [type]: updatedUser.identifier, type };
+      return { 
+        identifier: updatedUser.identifier,
+        category: updatedUser.category || null,
+        type: updatedUser.type,
+       };
     } else if (user) {
       throw new ForbiddenException("User already exists", 403);
     }
@@ -75,7 +79,7 @@ const register = async (payload) => {
       verified: true,
       password: encryptedPassword,
       accountStatus: USER_ACCOUNT_STATUS.CREATING,
-      category: USER_CATEGORIES.REGISTERD,
+      category,
     });
 
     return { [type]: identifier, type };

@@ -95,9 +95,22 @@ const RestaurantSchema = new mongoose.Schema(
       {
         name: {
           type: String,
-          required: true,
           trim: true,
-          unique: true, // Ensure each menu item has a unique name
+          required: function () {
+            return this.name !== undefined; // Make `name` required only if it exists
+          },
+          unique: false, // Disable MongoDB's native unique constraint
+          validate: {
+            validator: async function (value) {
+              if (!value) return true; // Skip validation if `name` is not provided
+              const existingMenuItem = await mongoose.models.Restaurant.findOne({
+                _id: { $ne: this._id }, // Exclude the current restaurant
+                "menu.name": value, // Check if the name exists in other restaurants
+              });
+              return !existingMenuItem; // Return false if a duplicate is found
+            },
+            message: "Menu item name must be unique.",
+          },
         },
         description: String,
         price: Number,

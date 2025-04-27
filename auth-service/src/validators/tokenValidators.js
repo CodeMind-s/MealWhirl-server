@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { USER_IDENTIFIER_TYPES } = require('../constants/userConstants');
+const { USER_IDENTIFIER_TYPES, USER_CATEGORIES } = require('../constants/userConstants');
 
 const loginSchema = Joi.object({
     identifier: Joi.string().required(),
@@ -18,7 +18,8 @@ const registerSchema = Joi.object({
         is: USER_IDENTIFIER_TYPES.PHONE,
         then: Joi.string().required(),
         otherwise: Joi.string().optional()
-    })
+    }),
+    category: Joi.string().valid(...Object.values(USER_CATEGORIES)).required(),
 }).xor(USER_IDENTIFIER_TYPES.EMAIL, USER_IDENTIFIER_TYPES.PHONE).unknown(false);
 
 const validateRegister = (req, res, next) => {
