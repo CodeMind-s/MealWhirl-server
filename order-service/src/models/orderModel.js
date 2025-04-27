@@ -40,24 +40,29 @@ const OrderSchema = new mongoose.Schema(
       ],
       default: "PLACED",
     },
-    paymentMethod: {
+    paymentId: {
       type: String,
-      enum: ["CASH", "CARD"],
+      default: null,
       required: true,
     },
-    paymentStatus: {
-      type: String,
-      enum: ["PAID", "UNPAID", "FAILED"],
-      default: "UNPAID",
-    },
-    totalAmount: {
-      type: Number,
-      required: true,
-    },
-    deliveryFee: {
-      type: Number,
-      required: true,
-    },
+    // paymentMethod: {
+    //   type: String,
+    //   enum: ["CASH", "CARD"],
+    //   required: true,
+    // },
+    // paymentStatus: {
+    //   type: String,
+    //   enum: ["PAID", "UNPAID", "FAILED"],
+    //   default: "UNPAID",
+    // },
+    // totalAmount: {
+    //   type: Number,
+    //   required: true,
+    // },
+    // deliveryFee: {
+    //   type: Number,
+    //   required: true,
+    // },
     distance: {
       type: Number,
       required: true,

@@ -12,12 +12,12 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
  */
 const router = Router();
 
-router.use("/carts", cartRoutes);
-router.use("/orders", orderRoutes);
-router.use("/payments", paymentRoutes);
+router.use("/api/v1/orders", orderRoutes);
+router.use("/api/v1/payments", paymentRoutes);
+router.use("/api/v1/carts", cartRoutes);
 router.use("/users", userRoutes);
 router.use("/auth", authRoutes);
-router.use("/notifications", notificationRoutes);
+router.use("/api/v1/notifications", notificationRoutes);
 router.use("/health", (req, res) => {
   res.status(200).send("API gateway is healthy");
 });

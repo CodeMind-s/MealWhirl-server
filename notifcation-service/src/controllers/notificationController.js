@@ -21,6 +21,16 @@ const Notification = require("../models/notificationModel");
 const logger = require("../utils/logger");
 const { produceMessage } = require("../services/kafkaService");
 const axios = require("axios"); // Import axios for making HTTP requests
+require("dotenv").config();
+const nodemailer = require("nodemailer");
+
+var transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.WEB_EMAIL,
+    pass: process.env.WEB_EMAI_APP_PASSWORD,
+  },
+});
 
 /**
  * Creates a new notification and saves it to the database.
@@ -308,9 +318,9 @@ exports.sendSMSNotification = async (smsData) => {
     }
 
     const apiUrl = "https://app.notify.lk/api/v1/send";
-    const userId = "[YOUR_USER_ID]"; // Replace with your Notify.lk User ID
-    const apiKey = "[YOUR_API_KEY]"; // Replace with your Notify.lk API Key
-    const senderId = "NotifyDEMO"; // Replace with your approved Sender ID
+    const userId = process.env.YOUR_USER_ID;
+    const apiKey = process.env.YOUR_API_KEY;
+    const senderId = process.env.SENDER_ID;
 
     const response = await axios.get(apiUrl, {
       params: {
@@ -333,5 +343,109 @@ exports.sendSMSNotification = async (smsData) => {
       { stack: error.stack }
     );
     throw error;
+  }
+};
+
+/**
+ * Sends an Email notification using nodemailes.
+ *
+ * @async
+ * @function sendSMSNotification
+ * @param {Object} emailData - The data for the email to be sent.
+ * @param {string} smsData.to - The recipient's phone number in the format 9471XXXXXXX.
+ * @param {string} smsData.message - The SMS content (maximum 621 characters).
+ * @returns {Promise<Object>} The response from the Notify.lk API.
+ * @throws {Error} Throws an error if required fields are missing or if the API call fails.
+ */
+exports.sendEmailNotification = async (emailData) => {
+  logger.info(
+    `[NOTIFICATION_SERVICE] {action:sendEmailNotification, status:error} Sending email to ${emailData.email}`
+  );
+  try {
+    if (!emailData.email) {
+      logger.error(
+        "[NOTIFICATION_SERVICE] {action:sendEmailNotification, status:error} Error sending email: Please fill all required fields."
+      );
+      throw new Error("Please fill all required fields.");
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailData.email)) {
+      logger.error(
+        "[NOTIFICATION_SERVICE] {action:sendEmailNotification, status:error} Error sending email: Invalid email format."
+      );
+      throw new Error("Invalid email format.");
+    }
+
+    var mailOptions = {
+      from: process.env.WEB_EMAIL,
+      to: emailData.email,
+      subject: "🍽️ MealWhirl - Order Confirmation",
+      html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid rgba(52,131,249, 255); background:rgb(218, 231, 244); border-radius: 8px;">
+      <div style="text-align: center;">
+        <h2 style="color: #1d4dd5;">MealWhirl</h2>
+        <p style="font-size: 18px; font-weight: bold;">Your order has been ${emailData.order.status}!</p>
+        <p style="color: #555;">Order ID: ${emailData.order._id}</p>
+      </div>
+      
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 10px;">
+        <p><strong>📦 Order Summary:</strong></p>
+        ${emailData.order.items
+          .map(
+            (item) => `
+          <div style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <p><strong>${item.name}</strong> × ${item.quantity}</p>
+            <p>${parseFloat(item.price).toFixed(2)} LKR</p>
+          </div>
+        `
+          )
+          .join("")}
+        
+        <div style="margin-top: 15px;">
+          <p><strong>Subtotal:</strong> ${parseFloat(
+            emailData.order.subtotal
+          ).toFixed(2)} LKR</p>
+          <p><strong>Delivery Fee:</strong> ${parseFloat(
+            emailData.order.deliveryFee
+          ).toFixed(2)} LKR</p>
+          <p><strong>Total:</strong> ${parseFloat(
+            emailData.order.totalAmount
+          ).toFixed(2)} LKR</p>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <p><strong>🚚 Delivery Information:</strong></p>
+        <p>${emailData.order.deliveryAddress}</p>
+        <p>Estimated delivery time: ${emailData.order.estimatedDelivery}</p>
+      </div>
+      
+      <div style="margin-top: 20px; background: #FFF3CD; padding: 10px; border-radius: 4px;">
+        <p><strong>ℹ️ Order Status:</strong> ${emailData.order.status}</p>
+        <p>${emailData.order.status.toLowerCase() === "delivered" ? "Your order has been delivered!" : "🎉We'll notify you when your order is on its way!"}</p>
+      </div>
+      
+      <p style="margin-top: 20px;">If you have any questions about your order, reply to this email or contact our support team.</p>
+      
+      <p style="text-align: center; font-size: 14px; color: #555;">
+        Thank you for choosing MealWhirl! We hope you enjoy your meal. 🍕
+      </p>
+    </div>
+        `,
+    };
+
+    const res = await transporter.sendMail(mailOptions);
+    if (res.accepted.length === 0) {
+      logger.error("Error sending email: Failed to send email.");
+      return { message: "Email Notification sent fail" }
+      throw new Error("Failed to send email.");
+    } else {
+      logger.info(`Email sent to ${emailData.email}`);
+      return { message: "Email Notification sent successfully" }
+    }
+  } catch (error) {
+    logger.error(`Error sending email: ${error.message}`);
+    throw new Error("Failed to send email.");
   }
 };

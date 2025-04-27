@@ -183,4 +183,62 @@ router.post("/sms", async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/v1/notifications/email
+ * @desc Send an Email notification
+ * @access Public
+ */
+router.post("/email", async (req, res) => {
+  logger.info(
+    `{POST /api/v1/notifications/email} Received request to send Email notification`
+  );
+  try {
+    const emailResult = await sendMessageWithResponse("notification-request", {
+      action: "sendEmailNotification",
+      payload: req.body,
+    });
+
+    logger.info(
+      `{POST /api/v1/notifications/email} Email notification sent successfully`
+    );
+    return res.status(200).json(emailResult);
+  } catch (error) {
+    logger.error(
+      `{POST /api/v1/notifications/email} Error sending Email notification - ${error.message}`
+    );
+    return res.status(500).json({
+      message: error.message || "Error sending SMS notification",
+    });
+  }
+});
+
+/**
+ * @route GET /api/v1/notifications/:id
+ * @desc Get notification by ID
+ * @access Public
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    logger.info(`{GET api/v1/notifications/:id} Received request to fetch notification with ID: ${req.params.id}`);
+    const notificationResult = await sendMessageWithResponse('notification-request', {
+      action: 'getNotificationByID',
+      payload: { id: req.params.id }
+    });
+    
+    if (!notificationResult) {
+      logger.warn(`{GET api/v1/notifications/:id} notification not found: ${req.params.id}`);
+      return res.status(404).json({ message: 'notification not found' });
+    }
+
+    logger.info(`{GET api/v1/notifications/:id} notification fetched successfully: ${req.params.id}`);
+    return res.status(200).json(notificationResult);
+  } catch (error) {
+    logger.error(`{GET api/v1/notifications/:id} Error fetching notification with ID: ${req.params.id} - ${error.message}`);
+    // Handle specific error types if needed
+    return res.status(error.statusCode || 500).json({ 
+      message: error.message || 'Error fetching notification' 
+    });
+  }
+});
+
 module.exports = router;

@@ -1,9 +1,9 @@
 /**
  * Order Controller Module
- * 
- * This module provides various functions to manage orders in the system, including creating, retrieving, updating, 
+ *
+ * This module provides various functions to manage orders in the system, including creating, retrieving, updating,
  * assigning delivery personnel, and deleting orders. It also integrates with Kafka for messaging and logging.
- * 
+ *
  * Functions:
  * - createOrder: Creates a new order and saves it to the database.
  * - getAllOrders: Fetches all orders from the database.
@@ -14,27 +14,30 @@
  * - updateOrderStatus: Updates the status of an order.
  * - assignDeliveryPerson: Assigns a delivery person to an order.
  * - deleteOrder: Deletes an order by its ID.
- * 
+ *
  * Dependencies:
  * - Order: Mongoose model for the order schema.
  * - logger: Utility for logging information and errors.
  * - produceMessage: Kafka service for producing messages to Kafka topics.
- * 
+ *
  * Error Handling:
  * - Each function validates input parameters and throws appropriate errors if validation fails.
  * - Errors are logged with detailed information, including stack traces.
- * 
+ *
  * Kafka Integration:
  * - Kafka messages are sent for actions like order creation, status updates, and deletions.
  * - Topics used include "user-order" and "order-status".
- * 
+ *
  * Logging:
  * - Logs are generated for each action, including initialization, success, and error states.
  * - Logs include contextual information such as order IDs, user IDs, and error details.
  */
 const Order = require("../models/orderModel");
 const logger = require("../utils/logger");
-const { produceMessage } = require("../services/kafkaService");
+const {
+  produceMessage,
+  sendMessageWithResponse,
+} = require("../services/kafkaService");
 
 /** Creates a new order and saves it to the database.
  * Validates the input data, constructs the order object, and sends a Kafka message for user validation.
@@ -68,10 +71,11 @@ exports.createOrder = async (orderData) => {
       restaurantId,
       items,
       deliveryAddress,
-      paymentMethod,
-      paymentStatus,
-      totalAmount,
-      deliveryFee,
+      paymentId,
+      // paymentMethod,
+      // paymentStatus,
+      // totalAmount,
+      // deliveryFee,
       distance,
       duration,
       fare,
@@ -83,16 +87,17 @@ exports.createOrder = async (orderData) => {
       !restaurantId ||
       !items ||
       !deliveryAddress ||
+      !paymentId ||
       !distance ||
       !duration ||
-      !fare ||
-      !totalAmount
+      !fare
+      // !totalAmount
     ) {
       logger.error(
-        "[ORDER_SERVICE] {action:createOrder, status:failed, reason:validation_error} Missing required fields, userId, restaurantId, items, deliveryAddress, distance, duration, fare, totalAmount are required"
+        "[ORDER_SERVICE] {action:createOrder, status:failed, reason:validation_error} Missing required fields, userId, restaurantId, items, paymentId, deliveryAddress, distance, duration, fare, totalAmount are required"
       );
       throw new Error(
-        "Missing required fields, userId, restaurantId, items, deliveryAddress, distance, duration, fare, totalAmount are required"
+        "Missing required fields, userId, restaurantId, items, deliveryAddress, distance, paymentId, duration, fare, totalAmount are required"
       );
     }
 
@@ -103,10 +108,11 @@ exports.createOrder = async (orderData) => {
       items,
       deliveryAddress,
       deliveryPersonId: null, // assigned once accepted
-      paymentMethod,
-      paymentStatus,
-      totalAmount,
-      deliveryFee,
+      paymentId,
+      // paymentMethod,
+      // paymentStatus,
+      // totalAmount,
+      // deliveryFee,
       distance,
       duration,
       fare,
@@ -165,7 +171,7 @@ exports.getAllOrders = async () => {
     //   logger.error(
     //     `[ORDER_SERVICE] {action:getOrderById, status:failed, reason:validation_error} Order ID is required`
     //   );
-      // Log the error and throw a custom error with status code
+    // Log the error and throw a custom error with status code
     //   const error = new Error("Order ID is required");
     //   error.statusCode = 400;
     //   throw error;
@@ -254,12 +260,12 @@ exports.getOrderById = async (orderId) => {
 
 /**
  * Fetches all orders for a specific user by their ID.
- * 
+ *
  * @async
  * @function getOrdersByUserId
  * @param {string} userId - The ID of the user whose orders to fetch.
  * @returns {Promise<Array<Object>>} An array of order objects for the specified user.
- * @throws {Error} Throws an error if the user ID is not provided,  
+ * @throws {Error} Throws an error if the user ID is not provided,
  *                if no orders are found for the user, or if any other error occurs during the operation.
  */
 exports.getOrdersByUserId = async (userId) => {
@@ -306,14 +312,14 @@ exports.getOrdersByUserId = async (userId) => {
 };
 
 /**
- * 
+ *
  * @async
  * @function getOrdersByRestaurantId
  * @param {string} restaurantId - The ID of the restaurant whose orders to fetch.
  * @returns {Promise<Array<Object>>} An array of order objects for the specified restaurant.
  * @throws {Error} Throws an error if the restaurant ID is not provided,
  *                 if no orders are found for the restaurant, or if any other error occurs during the operation.
- *  
+ *
  */
 exports.getOrdersByRestaurantId = async (restaurantId) => {
   try {
@@ -359,14 +365,14 @@ exports.getOrdersByRestaurantId = async (restaurantId) => {
 };
 
 /**
- * 
+ *
  * @async
  * @function getOrdersByDeliveryPersonId
  * @param {string} deliveryPersonId - The ID of the delivery person whose orders to fetch.
  * @returns {Promise<Array<Object>>} An array of order objects for the specified delivery person.
  * @throws {Error} Throws an error if the delivery person ID is not provided,
  *                 if no orders are found for the delivery person, or if any other error occurs during the operation.
- *  
+ *
  */
 exports.getOrdersByDeliveryPersonId = async (deliveryPersonId) => {
   try {
@@ -414,16 +420,16 @@ exports.getOrdersByDeliveryPersonId = async (deliveryPersonId) => {
 
 /**
  * Updates the status of an order.
- * 
+ *
  * This function retrieves an order by its ID, updates its status, and saves the changes to the database.
  * It also sends a Kafka message to notify about the status update.
- * 
+ *
  * @async
  * @function updateOrderStatus
  * @param {string} orderId - The ID of the order to update.
  * @param {string} orderStatus - The new status to set for the order.
  * @returns {Promise<Object>} The updated order object.
- * @throws {Error} Throws an error if the order ID is not provided, 
+ * @throws {Error} Throws an error if the order ID is not provided,
  *                 if the order is not found, or if any other error occurs during the operation.
  */
 exports.updateOrderStatus = async (orderId, orderStatus) => {
@@ -458,12 +464,12 @@ exports.updateOrderStatus = async (orderId, orderStatus) => {
     );
 
     // Send message to Kafka about order status update
-    await produceMessage("order-status", {
-      orderId,
-      userId: order.userId,
-      orderStatus,
-      timestamp: new Date().toISOString(),
-    });
+    // await produceMessage("order-status", {
+    //   orderId,
+    //   userId: order.userId,
+    //   orderStatus,
+    //   timestamp: new Date().toISOString(),
+    // });
 
     logger.info(
       `[ORDER_SERVICE] {action:updateOrderStatus, kafka:order-status, status:sent} Kafka message sent`,
@@ -488,10 +494,10 @@ exports.updateOrderStatus = async (orderId, orderStatus) => {
 
 /**
  * Assigns a delivery person to an order.
- * 
+ *
  * This function retrieves an order by its ID, assigns a delivery person to it, and saves the changes to the database.
  * It also sends a Kafka message to notify about the assignment.
- * 
+ *
  * @async
  * @function assignDeliveryPerson
  * @param {string} orderId - The ID of the order to assign a delivery person to.
@@ -558,18 +564,18 @@ exports.assignDeliveryPerson = async (orderId, deliveryPersonId) => {
 
 /**
  * Deletes an order by its ID.
- * 
+ *
  * This function retrieves an order by its ID, deletes it from the database, and sends a Kafka message to notify about the deletion.
- * 
+ *
  * @async
  * @function deleteOrder
  * @param {string} orderId - The ID of the order to delete.
  * @returns {Promise<Object>} A success message indicating the order was deleted.
- * @throws {Error} Throws an error if the order ID is not provided, 
+ * @throws {Error} Throws an error if the order ID is not provided,
  *                 if the order is not found, or if any other error occurs during the operation.
  */
 exports.deleteOrder = async (orderId) => {
- try {
+  try {
     logger.info(
       `[ORDER_SERVICE] {action:deleteOrder, status:init} Deleting order ${orderId}`
     );
@@ -606,8 +612,7 @@ exports.deleteOrder = async (orderId) => {
     );
 
     return { message: "Order deleted successfully" };
-  }
-  catch (error) {
+  } catch (error) {
     logger.error(
       `[ORDER_SERVICE] {action:deleteOrder, status:error} ${error.message}`,
       {
@@ -617,4 +622,4 @@ exports.deleteOrder = async (orderId) => {
     );
     throw error;
   }
-}
+};
