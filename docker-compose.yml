@@ -19,83 +19,83 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
     depends_on:
       - zookeeper
     networks:
       - mealwhirl-network
 
-  user-service:
-    build: ./user-service
-    container_name: user-service
-    ports:
-      - "5003:5003"
-    environment:
-      - APP_HOST=user-service
-      - PORT=5003
-      - ENV=dev
-      - KAFKA_BROKER=kafka:9092
-      - MONGO_URI=mongodb+srv://it22354310:NBS2gsliextPdCx8@test0.yyhrhjw.mongodb.net/?retryWrites=true&w=majority&appName=Test0
-    depends_on:
-      - kafka
-      - api-gateway
-    networks:
-      - mealwhirl-network
+  # user-service:
+  #   build: ./user-service
+  #   container_name: user-service
+  #   ports:
+  #     - "5003:5003"
+  #   environment:
+  #     - APP_HOST=user-service
+  #     - PORT=5003
+  #     - ENV=dev
+  #     - KAFKA_BROKER=kafka:9092
+  #     - MONGO_URI=mongodb+srv://it22354310:NBS2gsliextPdCx8@test0.yyhrhjw.mongodb.net/?retryWrites=true&w=majority&appName=Test0
+  #   depends_on:
+  #     - kafka
+  #     - api-gateway
+  #   networks:
+  #     - mealwhirl-network
 
-  auth-service:
-    build: ./auth-service
-    container_name: auth-service
-    ports:
-      - "5002:5002"
-    environment:
-      - APP_HOST=auth-service
-      - USER_SERVICE_PORT=5003
-      - USER_SERVICE_HOST=user-service
-      - PORT=5002
-      - ENV=dev
-      - KAFKA_BROKER=kafka:9092
-      - TOKEN_SECRET=-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC3sCd/cbG3DYuf\nbwfc7NgXZk+vgJkGJxwll4MTc0PpTOe/FJcmPeudTanVlmx6BlvidWy5t22o217q\nAoQvbiyzYzTCTCnpWvjlp1u3X+dE9WU2y2Xz1bFdrcnwGK04fugMGJykxjh/euIl\n15qY64QUVCBG1eniVI2G0MoLOsd6HDTJ62zVdBXVoi0bodzKNCKYpJXzwPNgIu5o\nZYXyPnOiofaHTwhWPft9yG/E0W78k7oBWFZJh6U4OTi6taZhoJy2tpDk3gWLZdGp\nZ9zmyoHZsOB4DIS+4agCFNaZQyDXc4Nz3BHo343UfeexxSpSQXn29MQttmcGs8ni\nW5lYYVBRAgMBAAECggEAUHGPyqti9dSzyd3ZJrJ+rDi9OxHpch1coUXqPHFlU12/\nvBnrW+8QKXKipwxac1InmVRtiiO/nYx806TIePEaGHGg4Fp0nGKf0AtsCjGw2a1S\nZx3Kh2+VXn5GiqRz7+L8ApggubSpd4K8WXBDnya9UB3LiNoTtG/tDxaO9T4Hr/y9\nrgEcflKmblSKgJiI74FOBfXEh/bOZfmKg2AjZlbpPtZcHMgd31XUz5yzsPrK7tE6\nfKpmhPqFY3sacSjzZth9YeFez+Pm+Jo5dlkbtgKSZH4jjUhMJnpuA5llrk8wodnC\nmQeQ8sBa4fmElsK0sP/Td+YsiJMJ1pL/ijt5egSKlQKBgQDsGSziuOySuQBC3Kx7\n0IYix/w/aQB0lPJFou7WrvgRntI6JQsou9Q0tLDfCo3EywVNwmDnJLbQ3pwwb//P\ntEiod/bDnjgAFwlEnnqM8IwnRSjEiIJg4Ed21TO8PKG1dY/exaXcPp0r217BHrHW\nHluuREPSbyL3rQXPpsLJFjGKLwKBgQDHLAFjF+zyjYlQ/3gEypmj4QADShB5QbIc\n/msFFRrFHQNBccYw77/JUtmUp7CCyBTLCzvxjZx1pGrTLreeE1JeUCdKClG5UBDu\nMHbcNjrakPWIpLcAaEwR/ge43Wc6lUoCSwZf0Oeu3ZnuozVVywRXSpptcWhk+vbg\nPTqkvFStfwKBgQCilsO+brMcZ6KyaN2vdm6pTSd9U4YowtoE8quf1GapW8JSoGgK\n6S6+DSEwuEfhGh7Q6edpxnLPbD4LbVWxZ+oRemvJUxAln7eWNb0XiiA6evoUPh3r\nMQiF4VT7cJW8LPWi6GHMRqJeLXgXblfxqH5iiEhchoSCI/k4gxLpAAulqQKBgQCs\n49UcaLNlZVkyd2B+gEPYDsMNF+iu6Uksg+jwU36WZnXiBFovNp57qzB2Kw48qGPs\nUQcqymtrb1rPkLkRPeJ9PgSs78I7I3Ze3LEAvQ5flf+dKqY0c1S9NY8MeRxXrSm+\nTdPtrpC+qVwq23+7xmwxPfBJWm1tYrCUvHHAeD7lDwKBgQCpRaXrg63jcQXnS10C\nVMnZkS5lXZalkCjjrNTyVe7/piXWKXkXNjnERHSno9fLwF2hfCpLQvkshZJ68D2l\nPfJFVo+4F11hvwBhD9G5/z8VXFfsDqT1GKL51gpE1XuFqKVCKta3jzKZ/eVgAyuW\nrOrLZfwxDMopbBiNpJxH0oSx2A==\n-----END PRIVATE KEY-----
-      - TOKEN_EXPIRATION=1h
-    depends_on:
-      - kafka
-      - api-gateway
-      - user-service
-    networks:
-      - mealwhirl-network
+  # auth-service:
+  #   build: ./auth-service
+  #   container_name: auth-service
+  #   ports:
+  #     - "5002:5002"
+  #   environment:
+  #     - APP_HOST=auth-service
+  #     - USER_SERVICE_PORT=5003
+  #     - USER_SERVICE_HOST=user-service
+  #     - PORT=5002
+  #     - ENV=dev
+  #     - KAFKA_BROKER=kafka:9092
+  #     - TOKEN_SECRET=-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC3sCd/cbG3DYuf\nbwfc7NgXZk+vgJkGJxwll4MTc0PpTOe/FJcmPeudTanVlmx6BlvidWy5t22o217q\nAoQvbiyzYzTCTCnpWvjlp1u3X+dE9WU2y2Xz1bFdrcnwGK04fugMGJykxjh/euIl\n15qY64QUVCBG1eniVI2G0MoLOsd6HDTJ62zVdBXVoi0bodzKNCKYpJXzwPNgIu5o\nZYXyPnOiofaHTwhWPft9yG/E0W78k7oBWFZJh6U4OTi6taZhoJy2tpDk3gWLZdGp\nZ9zmyoHZsOB4DIS+4agCFNaZQyDXc4Nz3BHo343UfeexxSpSQXn29MQttmcGs8ni\nW5lYYVBRAgMBAAECggEAUHGPyqti9dSzyd3ZJrJ+rDi9OxHpch1coUXqPHFlU12/\nvBnrW+8QKXKipwxac1InmVRtiiO/nYx806TIePEaGHGg4Fp0nGKf0AtsCjGw2a1S\nZx3Kh2+VXn5GiqRz7+L8ApggubSpd4K8WXBDnya9UB3LiNoTtG/tDxaO9T4Hr/y9\nrgEcflKmblSKgJiI74FOBfXEh/bOZfmKg2AjZlbpPtZcHMgd31XUz5yzsPrK7tE6\nfKpmhPqFY3sacSjzZth9YeFez+Pm+Jo5dlkbtgKSZH4jjUhMJnpuA5llrk8wodnC\nmQeQ8sBa4fmElsK0sP/Td+YsiJMJ1pL/ijt5egSKlQKBgQDsGSziuOySuQBC3Kx7\n0IYix/w/aQB0lPJFou7WrvgRntI6JQsou9Q0tLDfCo3EywVNwmDnJLbQ3pwwb//P\ntEiod/bDnjgAFwlEnnqM8IwnRSjEiIJg4Ed21TO8PKG1dY/exaXcPp0r217BHrHW\nHluuREPSbyL3rQXPpsLJFjGKLwKBgQDHLAFjF+zyjYlQ/3gEypmj4QADShB5QbIc\n/msFFRrFHQNBccYw77/JUtmUp7CCyBTLCzvxjZx1pGrTLreeE1JeUCdKClG5UBDu\nMHbcNjrakPWIpLcAaEwR/ge43Wc6lUoCSwZf0Oeu3ZnuozVVywRXSpptcWhk+vbg\nPTqkvFStfwKBgQCilsO+brMcZ6KyaN2vdm6pTSd9U4YowtoE8quf1GapW8JSoGgK\n6S6+DSEwuEfhGh7Q6edpxnLPbD4LbVWxZ+oRemvJUxAln7eWNb0XiiA6evoUPh3r\nMQiF4VT7cJW8LPWi6GHMRqJeLXgXblfxqH5iiEhchoSCI/k4gxLpAAulqQKBgQCs\n49UcaLNlZVkyd2B+gEPYDsMNF+iu6Uksg+jwU36WZnXiBFovNp57qzB2Kw48qGPs\nUQcqymtrb1rPkLkRPeJ9PgSs78I7I3Ze3LEAvQ5flf+dKqY0c1S9NY8MeRxXrSm+\nTdPtrpC+qVwq23+7xmwxPfBJWm1tYrCUvHHAeD7lDwKBgQCpRaXrg63jcQXnS10C\nVMnZkS5lXZalkCjjrNTyVe7/piXWKXkXNjnERHSno9fLwF2hfCpLQvkshZJ68D2l\nPfJFVo+4F11hvwBhD9G5/z8VXFfsDqT1GKL51gpE1XuFqKVCKta3jzKZ/eVgAyuW\nrOrLZfwxDMopbBiNpJxH0oSx2A==\n-----END PRIVATE KEY-----
+  #     - TOKEN_EXPIRATION=1h
+  #   depends_on:
+  #     - kafka
+  #     - api-gateway
+  #     - user-service
+  #   networks:
+  #     - mealwhirl-network
 
-  api-gateway:
-    build: ./api-gateway
-    container_name: api-gateway
-    ports:
-      - "5001:5001"
-    environment:
-      - APP_HOST=api-gateway
-      - USER_SERVICE_PORT=5003
-      - AUTH_SERVICE_PORT=5002
-      - USER_SERVICE_HOST=user-service
-      - AUTH_SERVICE_HOST=auth-service
-      - PORT=5001
-      - ENV=dev
-      - KAFKA_BROKER=kafka:9092
-    networks:
-      - mealwhirl-network
+  # api-gateway:
+  #   build: ./api-gateway
+  #   container_name: api-gateway
+  #   ports:
+  #     - "5001:5001"
+  #   environment:
+  #     - APP_HOST=api-gateway
+  #     - USER_SERVICE_PORT=5003
+  #     - AUTH_SERVICE_PORT=5002
+  #     - USER_SERVICE_HOST=user-service
+  #     - AUTH_SERVICE_HOST=auth-service
+  #     - PORT=5001
+  #     - ENV=dev
+  #     - KAFKA_BROKER=kafka:9092
+  #   networks:
+  #     - mealwhirl-network
 
-  order-service:
-    build: ./order-service
-    container_name: order-service
-    ports:
-      - "5005:5005"
-    depends_on:
-      - kafka
-    environment:
-      - MONGO_URI=mongodb+srv://bhashanasirimanna:4uPfcWJ3EmUQmTla@orderservice.tjnxstl.mongodb.net/?retryWrites=true&w=majority&appName=OrderService
-      - PORT=5005
-      - KAFKA_BROKER=kafka:9092
-    networks:
-      - mealwhirl-network
+  # order-service:
+  #   build: ./order-service
+  #   container_name: order-service
+  #   ports:
+  #     - "5005:5005"
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     - MONGO_URI=mongodb+srv://bhashanasirimanna:4uPfcWJ3EmUQmTla@orderservice.tjnxstl.mongodb.net/?retryWrites=true&w=majority&appName=OrderService
+  #     - PORT=5005
+  #     - KAFKA_BROKER=kafka:9092
+  #   networks:
+  #     - mealwhirl-network
 
   # paymeny-service:
   #   build: ./paymeny-service
@@ -111,19 +111,34 @@ services:
   #   networks:
   #     - mealwhirl-network
 
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./api-gateway/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - api-gateway
-      - user-service
-      - auth-service
-    networks:
-      - mealwhirl-network
+  # cart-service:
+  #   build: ./cart-service
+  #   container_name: cart-service
+  #   ports:
+  #     - "5007:5007"
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     - MONGO_URI=mongodb+srv://thimeshaansar:z7Yfimxt4No99TK7@cluster0.hsrcziw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+  #     - PORT=5007
+  #     - KAFKA_BROKER=kafka:9092
+  #   networks:
+  #     - mealwhirl-network
+
+
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: nginx
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./api-gateway/default.conf:/etc/nginx/conf.d/default.conf
+  #   depends_on:
+  #     - api-gateway
+  #     - user-service
+  #     - auth-service
+  #   networks:
+  #     - mealwhirl-network
 
 #item-service :5004, cart:5007, delivery:5008, notification:5009
 networks:
