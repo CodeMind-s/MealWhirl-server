@@ -26,6 +26,7 @@ const initKafkaConsumer = async () => {
       "order-response",
       "notification-response",
       "payment-response",
+      'cart-response',
     ],
     fromBeginning: false,
   });
