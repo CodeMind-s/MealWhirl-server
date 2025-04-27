@@ -50,7 +50,7 @@ const initKafkaConsumer = async () => {
               break;
             case "getNotificationByID":
               responseData = await notificationController.getNotificationByID(
-                payload.notificationId
+                payload.id
               );
               statusCode = 200;
               break;
@@ -77,6 +77,12 @@ const initKafkaConsumer = async () => {
               break;
             case "sendSMSNotification":
               responseData = await notificationController.sendSMSNotification(
+                payload
+              );
+              statusCode = 200;
+              break;
+            case "sendEmailNotification":
+              responseData = await notificationController.sendEmailNotification(
                 payload
               );
               statusCode = 200;
