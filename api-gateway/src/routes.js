@@ -2,6 +2,7 @@ const { Router } = require("express");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const { createProxyMiddleware } = require("http-proxy-middleware");
@@ -11,6 +12,7 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
  */
 const router = Router();
 
+router.use("/carts", cartRoutes);
 router.use("/orders", orderRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/users", userRoutes);
