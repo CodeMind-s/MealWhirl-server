@@ -37,6 +37,7 @@ const login = async (payload) => {
       identifier: user.identifier,
       category: user.category || null,
       type: user.type,
+      accountStatus: user.accountStatus,
     };
   } catch (error) {
     throw error;
