@@ -32,7 +32,7 @@ router.put(
 );
 router.post(
   "/identifier",
-  authorization([SUPER_ADMIN, ADMINISTRATOR, OWNER], getOwner),
+  authorization([ANY]),
   validateCreateUpdateUserByIdentifier,
   userController.createUserByIdentifier
 );
