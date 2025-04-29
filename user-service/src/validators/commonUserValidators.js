@@ -70,6 +70,9 @@ const mandatoryRestaurantSchema = {
       .required(),
     nationalId: Joi.string().required(),
   }).required(),
+  paymentMethods: Joi.array()
+    .items(Joi.string().trim().lowercase().required()).min(1)
+    .required(),
 };
 
 const createRestaurantSchema = Joi.object({

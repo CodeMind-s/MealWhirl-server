@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const { validate } = require('../models/userModel');
+const BadRequestException = require('../exceptions/BadRequestException');
 
 const paymentValidator = Joi.object({
     identifier: Joi.string().required().messages({

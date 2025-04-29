@@ -4,8 +4,9 @@ const authorization = require("../middlewares/authorization");
 const { PERMISSION_TYPES } = require("../constants/permissionConstants");
 const { getOwner } = require("../utils/userUtils");
 const { validateMenuItem, validateGetMenuItem } = require("../validators/restaurantValidators");
+const { validatePaymentMethod } = require("../validators/customerValidators");
 
-const { SUPER_ADMIN, ADMINISTRATOR, OWNER } = PERMISSION_TYPES;
+const { ANY, SUPER_ADMIN, ADMINISTRATOR, OWNER, REGISTERED } = PERMISSION_TYPES;
 
 const router = express.Router();
 
@@ -32,6 +33,17 @@ router.delete(
   authorization([SUPER_ADMIN, ADMINISTRATOR, OWNER], getOwner),
   validateGetMenuItem,
   restaurantController.deleteMenuItem
+);
+router.post(
+  "/payment",
+  authorization([ANY], getOwner),
+  validatePaymentMethod,
+  restaurantController.addPaymentMethod
+);
+router.delete(
+  "/payment",
+  authorization([SUPER_ADMIN, ADMINISTRATOR, OWNER], getOwner),
+  restaurantController.removePaymentMethod
 );
 
 module.exports = router;

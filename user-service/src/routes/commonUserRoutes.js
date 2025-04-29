@@ -38,13 +38,13 @@ router.post(
 );
 router.get(
   "/:category",
-  authorization([SUPER_ADMIN, ADMINISTRATOR]),
+  authorization([ANY]),
   validateGetAllUsersByCategory,
   userController.getAllUsersByCategory
 );
 router.get(
   "/:category/:id",
-  authorization([SUPER_ADMIN, ADMINISTRATOR, OWNER], getOwner),
+  authorization([ANY]),
   validateGetUserByIdentifierAndCategory,
   userController.getUserByIdentifierAndCategory
 );
