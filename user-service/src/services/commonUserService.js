@@ -234,12 +234,13 @@ const updateUserByCategoryAndIdentifier = async (userData) => {
 
     const userObject = getModelByCategory(category);
 
-    const { email, phoneNumber, restaurant, ...rest } = userData;
+    const { email, phoneNumber, restaurant, profilePicture, ...rest } = userData;
 
     const updatedUser = await userObject.findOneAndUpdate(
       { identifier },
       {
         ...rest,
+        ...(profilePicture ? { profilePicture } : {}),
         ...(restaurant ? restaurant : {}),
         ...(email
           ? {
