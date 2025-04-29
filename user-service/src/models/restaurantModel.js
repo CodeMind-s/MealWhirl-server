@@ -46,6 +46,10 @@ const RestaurantSchema = new mongoose.Schema(
         default: false,
       },
     },
+    profilePicture: {
+      type: String,
+      trim: true,
+    },
     address: {
       type: {
         street: { type: String, required: true },
@@ -69,6 +73,12 @@ const RestaurantSchema = new mongoose.Schema(
       },
       required: true, // Make the entire location object mandatory
     },
+    paymentMethods: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Payment",
+      },
+    ],
     registrationNumber: {
       type: String,
       required: true,
@@ -103,10 +113,12 @@ const RestaurantSchema = new mongoose.Schema(
           validate: {
             validator: async function (value) {
               if (!value) return true; // Skip validation if `name` is not provided
-              const existingMenuItem = await mongoose.models.Restaurant.findOne({
-                _id: { $ne: this._id }, // Exclude the current restaurant
-                "menu.name": value, // Check if the name exists in other restaurants
-              });
+              const existingMenuItem = await mongoose.models.Restaurant.findOne(
+                {
+                  _id: { $ne: this._id }, // Exclude the current restaurant
+                  "menu.name": value, // Check if the name exists in other restaurants
+                }
+              );
               return !existingMenuItem; // Return false if a duplicate is found
             },
             message: "Menu item name must be unique.",

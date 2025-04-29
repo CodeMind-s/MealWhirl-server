@@ -12,6 +12,12 @@ const ForbiddenException = require("../exceptions/ForbiddenException");
 const { getModelByCategory } = require("../utils/userUtils");
 const { getUserRole, getUserId } = require("../utils/contextUtils");
 const Vehicle = require("../models/vehicleModel");
+const Payment = require("../models/paymentModel");
+
+const PAYMENT_ENRICHMENT = [
+  USER_CATEGORIES.CUSTOMER,
+  USER_CATEGORIES.RESTAURANT,
+];
 
 const getUserByIdentifier = async (identifier, category) => {
   return User.findOne({ identifier, ...(category ? { category } : {}) });
@@ -161,8 +167,25 @@ const getUserDataByIdentifierAndCategory = async (category, identifier) => {
     const userObject = getModelByCategory(categoryToUse);
 
     const userData = await userObject.findOne({ identifier });
+
+    const payload = { ...userData._doc };
+    if (PAYMENT_ENRICHMENT.includes(categoryToUse)) {
+      const options = userData.paymentMethods;
+      console.log(options);
+      const paymentData = await Payment.find({
+        _id: { $in: options },
+      });
+      if (paymentData) {
+        payload.paymentMethods = paymentData.map((payment) => ({
+          id: payment._id,
+          cardNumber: payment.cardNumber.slice(-4),
+          expiryDate: payment.expiryDate,
+        }));
+      }
+    }
+
     return {
-      ...userData._doc,
+      ...payload,
       verified: user.verified,
       type: user.type,
       accountStatus: user.accountStatus,
@@ -250,7 +273,10 @@ const updateUserByCategoryAndIdentifier = async (userData) => {
   }
 };
 
-const updateUserAccountStatusByCategoryAndIdentifier = async (userData, status) => {
+const updateUserAccountStatusByCategoryAndIdentifier = async (
+  userData,
+  status
+) => {
   try {
     if (!status) {
       logger.error("Status is required");
@@ -450,5 +476,5 @@ module.exports = {
   deleteAccountByCategoryAndIdentifier,
   getUserDataByIdentifier,
   updateUserByIdentifier,
-  createUserByIdentifier
+  createUserByIdentifier,
 };

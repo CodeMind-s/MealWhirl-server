@@ -31,10 +31,26 @@ const deleteMenuItem = async (req, res, next) => {
     .then((value) => res.status(204).json(createSuccessResponse(value)))
     .catch((err) => next(appendExceptionStack(err)));
 };
+const addPaymentMethod = async (req, res, next) => {
+  restaurantService
+    .addPayemntMethod(req.body)
+    .then((value) => res.status(201).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+};
+
+const removePaymentMethod = async (req, res, next) => {
+  restaurantService
+    .removePaymentMethod(req.body)
+    .then((value) => res.status(200).json(createSuccessResponse(value)))
+    .catch((err) => next(appendExceptionStack(err)));
+};
+
 
 module.exports = {
   getMenuItemByName,
   addMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  addPaymentMethod,
+  removePaymentMethod,
 };
