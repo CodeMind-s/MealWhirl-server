@@ -180,6 +180,7 @@ const getUserDataByIdentifierAndCategory = async (category, identifier) => {
           id: payment._id,
           cardNumber: payment.cardNumber.slice(-4),
           expiryDate: payment.expiryDate,
+          isDefault: payment.isDefault,
         }));
       }
     }
